@@ -33,6 +33,10 @@
 #include <SPI.h>
 #include <Adafruit_PN532.h>
 
+// Control pins
+#define RPG_RESET 8
+#define RPG_STATUS 9
+
 // If using the breakout with SPI, define the pins for SPI communication.
 #define PN532_SCK  (13)
 #define PN532_MOSI (11)
@@ -57,6 +61,7 @@ Adafruit_PN532 nfc[NUM_ADAPTERS] = {nfc0, nfc1, nfc2, nfc3};
 
 String data[NUM_ADAPTERS];
 boolean dataUpdate = false;
+rpgStatus = false;
 
 void setup() {
   Serial.begin(115200);
@@ -67,32 +72,64 @@ void setup() {
     nfc[i].begin();
     //delay(500);
   }
+  
+  pinMode(RPG_RESET, INPUT_PULLUP);
+  pinMode(RPG_STATUS, OUTPUT);
+}
+
+void reset() {
+  // If the RPG_RESET pin is activated, clears the status to restart the game
+  rpgStatus = false;
+  digitalWrite(RPG_STATUS, LOW);
+}
+
+void set_rpg_ok() {
+  // game is solved, sthe the status pin HIGH and keep it until reset
+  rpgStatus = true;
+  digitalWrite(RPG_STATUS, HIGH);
 }
 
 void loop() {
-  for ( int i = 0; i < NUM_ADAPTERS; i++ ) {
-    boolean success;
-    uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
-    uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-  
-    // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
-    // 'uid' will be populated with the UID, and uidLength will indicate
-    // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
+  if (!rpg_status) {
+    int cardsOk = 0;
+    for ( int i = 0; i < NUM_ADAPTERS; i++ ) {
+      boolean success;
+      uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
+      uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
+    
 
-    success = nfc[i].readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength, 100);
-  
-    if (success) {
-      Serial.println("Found a card!");
-      Serial.print("UID Length: ");Serial.print(uidLength, DEC);Serial.println(" bytes");
-      Serial.print("UID Value: ");
-      for (uint8_t i=0; i < uidLength; i++) {
-        Serial.print(" 0x");Serial.print(uid[i], HEX); 
+      // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
+      // 'uid' will be populated with the UID, and uidLength will indicate
+      // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
+
+      success = nfc[i].readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength, 100);
+    
+      if (success) {
+        Serial.println("Found a card!");
+        Serial.print("UID Length: ");Serial.print(uidLength, DEC);Serial.println(" bytes");
+        Serial.print("UID Value: ");
+        for (uint8_t i=0; i < uidLength; i++) {
+          Serial.print(" 0x");Serial.print(uid[i], HEX); 
+        }
+        Serial.println("");
+        // test to check if it's the right card
+        // should set the cards with a code to avoid having to fix the code when replacing cards
+        // if its the right card increments the cardsOk counter
       }
-      Serial.println("");
-      // Wait 1 second before continuing
-      delay(1000);
+
+      // 50ms delay between card reads; 200ms to read all four cards
+      delay(50);
+    }
+    if (cardsOk == 4) {
+      set_rpg_ok();
     }
   }
-  Serial.print(".");
-  delay(1000);
+  // reads the status sign
+  {
+    int rpgReset;
+    rpgReset = digitalRead(RPG_RESET);
+    if !(rpgReset) {
+      reset()
+    }
+  }
 }
