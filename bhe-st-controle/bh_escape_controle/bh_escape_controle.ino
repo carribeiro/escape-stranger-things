@@ -271,8 +271,13 @@ estiver ligado.
 #define INPUT_PORTA_ARMARIO 11
 #define OUTPUT_WILL_OK 12
 
-void setup() {
-  // 
+boolean porta_armadilha = true;
+boolean porta_armario = true;
+boolean tomada_tv = false;
+//boolean luz_interna_armario = false;  // ver se precisa de um pino pra isso
+
+void reset_game() {
+  // configura pinos
   pinMode(ARVORE_GENEALOGICA_OK, INPUT_PULLUP);
   pinMode(OUTPUT_QUADRO_OK, OUTPUT);
   pinMode(INPUT_RPG_OK, INPUT_PULLUP);
@@ -281,13 +286,52 @@ void setup() {
   pinMode(OUTPUT_RPG_OK, OUTPUT);
   pinMode(INPUT_BOMBAS_OK, INPUT_PULLUP);
   pinMode(INPUT_PORTA_ARMADILHA, INPUT_PULLUP);
-  pinMode(OUTPUT_ARMADILHA_OK , INPUT_PULLUP);
+  pinMode(OUTPUT_ARMADILHA_OK , OUTPUT);
   pinMode(INPUT_SENSOR_WILL_OK, INPUT_PULLUP);
   pinMode(INPUT_PORTA_ARMARIO, INPUT_PULLUP_;
   pinMode(OUTPUT_WILL_OK, OUTPUT);
+
+  // zera variáveis de controle
+  tomada_tv = false;
+  digitalWrite(OUTPUT_QUADRO_OK, false);
+
+  porta_armadilha = true;
+  digitalWrite(OUTPUT_RPG_OK, true);
+
+  porta_armario = true;
+  digitalWrite(OUTPUT_QUADRO_OK, true);
+
+  //luz_interna_armario = false;
+}
+
+void setup() {
+  setup();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // lê todos os sensores
+  arvore_genealogica_ok = digitalRead(ARVORE_GENEALOGICA_OK);
+  rpg_ok = digitalRead(INPUT_RPG_OK);
+  bombas_ok = digitalRead(INPUT_BOMBAS_OK);
+  porta_armadilha = digitalRead(INPUT_PORTA_ARMADILHA);
+  sensor_will = digitalRead(INPUT_SENSOR_WILL_OK);
+  porta_armario = digitalRead(INPUT_PORTA_ARMARIO;
 
+  // teste da arvore genelogica
+  if (arvore_genealogica_ok) {}
+    digitalWrite(OUTPUT_QUADRO_OK, true);
+  }
+
+  // teste do RPG
+  if (rpg_ok) {
+    digitalWrite(LED_RPG_OK, true);
+    digitalWrite(OUTPUT_RPG_OK, true);
+  }
+  
+  // teste da armadilha
+  if ()
+  digitalWrite(OUTPUT_RESET_RPG);
+  
+  digitalWrite(OUTPUT_ARMADILHA_OK);
+  digitalWrite(OUTPUT_WILL_OK);
 }
