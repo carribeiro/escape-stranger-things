@@ -1,4 +1,4 @@
-// (C) 2011 FAZ MAKERSPACE
+// (C) 2021 FAZ MAKERSPACE
 // CAIXA DE CONTROLE BH ESCAPE
 // SALA STRANGER THINGS
 //
@@ -258,8 +258,8 @@ estiver ligado.
 
 // pins
 
-#define ARVORE_GENEALOGICA_OK 1
-#define OUTPUT_QUADRO_OK 2
+#define INPUT_ARVORE_GENEALOGICA_OK 2
+#define OUTPUT_QUADRO_OK 15
 #define INPUT_RPG_OK 3
 #define LED_RPG_OK 4
 #define OUTPUT_RESET_RPG 5
@@ -276,14 +276,18 @@ boolean porta_armario = true;
 boolean tomada_tv = false;
 //boolean luz_interna_armario = false;  // ver se precisa de um pino pra isso
 boolean arvore_genealogica_ok = true;
+boolean rpg_ok = false;
+boolean bombas_ok = false;
+boolean sensor_will = false;
 
+/*
 arvore_genealogica_ok = digitalRead(ARVORE_GENEALOGICA_OK);
   rpg_ok = digitalRead(INPUT_RPG_OK);
   bombas_ok = digitalRead(INPUT_BOMBAS_OK);
   porta_armadilha = digitalRead(INPUT_PORTA_ARMADILHA);
   sensor_will = digitalRead(INPUT_SENSOR_WILL_OK);
   porta_armario = digitalRead(INPUT_PORTA_ARMARIO);
-
+*/
 void reset_game() {
   // configura pinos
   pinMode(ARVORE_GENEALOGICA_OK, INPUT_PULLUP);
@@ -326,7 +330,7 @@ void loop() {
   porta_armario = digitalRead(INPUT_PORTA_ARMARIO);
 
   // teste da arvore genelogica
-  if (arvore_genealogica_ok) {}
+  if (arvore_genealogica_ok) {
     digitalWrite(OUTPUT_QUADRO_OK, true);
   }
 
@@ -337,9 +341,10 @@ void loop() {
   }
   
   // teste da armadilha
-  if ()
-  digitalWrite(OUTPUT_RESET_RPG);
+  if (bombas_ok){
+  digitalWrite(OUTPUT_RESET_RPG, true);
   
-  digitalWrite(OUTPUT_ARMADILHA_OK);
-  digitalWrite(OUTPUT_WILL_OK);
+  digitalWrite(OUTPUT_ARMADILHA_OK, true);
+  digitalWrite(OUTPUT_WILL_OK, true);
+}
 }
