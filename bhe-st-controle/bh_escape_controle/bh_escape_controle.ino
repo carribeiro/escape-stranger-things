@@ -259,9 +259,11 @@ estiver ligado.
 // pins
 
 #define INPUT_ARVORE_GENEALOGICA_OK 2
-#define OUTPUT_QUADRO_OK 15
-#define INPUT_RPG_OK 3
-#define LED_RPG_OK 4
+#define OUTPUT_QUADRO_OK 3
+#define INPUT_RPG_OK 4
+#define LED_RPG_OK 15
+#define INPUT_RPG_ON 16
+#define INPUT_RESET_RPG 17
 #define OUTPUT_RESET_RPG 5
 #define OUTPUT_RPG_OK 6
 #define INPUT_BOMBAS_OK 7
@@ -270,6 +272,7 @@ estiver ligado.
 #define INPUT_SENSOR_WILL_OK 10
 #define INPUT_PORTA_ARMARIO 11
 #define OUTPUT_WILL_OK 12
+
 
 boolean porta_armadilha = true;
 boolean porta_armario = true;
