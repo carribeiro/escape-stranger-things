@@ -1,6 +1,31 @@
+
+#include <emulatetag.h>
+#include <llcp.h>
+#include <PN532_debug.h>
+#include <PN532.h>
+#include <PN532Interface.h>
+#include <snep.h>
+#include <mac_link.h>
+
+#include <emulatetag.h>
+#include <llcp.h>
+#include <PN532_debug.h>
+#include <PN532.h>
+#include <PN532Interface.h>
+#include <snep.h>
+#include <mac_link.h>
+
 // MESA RPG BH ESCAPE
 // Sensores PN532
 // Feito por Carlos e André - Novembro 2021
+
+// Conexões da mesa
+/// / cabo de conexão de 4 vias
+// Roxo - desconectado  --> vermelho 
+// Pino vazio
+// Cinza - Ground --> marrom
+// Branco - Pino digital 3 --> laranja (RESET)
+// Preto - Pino Digital 2 --> amarelo (STATUS)
 
 //Bibliotecas
 #include <Wire.h>
@@ -8,8 +33,8 @@
 #include <Adafruit_PN532.h>
 
 // Control pins
-#define RPG_RESET 8
-#define RPG_STATUS 9
+#define RPG_RESET 2
+#define RPG_STATUS 3
 
 // If using the breakout with SPI, define the pins for SPI communication.
 #define PN532_SCK  (13)
@@ -70,7 +95,7 @@ char CARDS[NUM_CARDS][4] = {
 };
 
 // SOLUÇÃO RPG: Estopa, Felipe, Pedro e Mudinho
-char RPG_answer[NUM_ADAPTERS] = { ID_ESTOPA_CINZENTO, ID_FELIPE_BARBARO, ID_PEDRO_DRUIDA, ID_MUDINHO_BARDO };
+char RPG_answer[NUM_ADAPTERS] = { ID_MUDINHO_BARDO, ID_PEDRO_DRUIDA, ID_FELIPE_BARBARO, ID_ESTOPA_CINZENTO };
 
 int cardsOk = 0;
 int cards_on_table[NUM_ADAPTERS] = {ID_NONE,ID_NONE,ID_NONE,ID_NONE};
@@ -99,20 +124,20 @@ void setup() {
     }
   }
   
-  // pinMode(RPG_RESET, INPUT_PULLUP);
-  // pinMode(RPG_STATUS, OUTPUT);
+  pinMode(RPG_RESET, INPUT_PULLUP);
+  pinMode(RPG_STATUS, OUTPUT);
 }
 
 void reset() {
   // If the RPG_RESET pin is activated, clears the status to restart the game
   rpgStatus = false;
-//  digitalWrite(RPG_STATUS, LOW);
+  digitalWrite(RPG_STATUS, LOW);
 }
 
 void set_rpg_ok() {
   // game is solved, sthe the status pin HIGH and keep it until reset
   rpgStatus = true;
-//  digitalWrite(RPG_STATUS, HIGH);
+  digitalWrite(RPG_STATUS, HIGH);
 }
 
 void loop() {
@@ -136,9 +161,9 @@ void loop() {
         //Serial.print("UID Length: "); Serial.print(uidLength, DEC); Serial.println(" bytes");
         //Serial.print("UID Value: ");
         for (uint8_t i=0; i < uidLength; i++) {
-          Serial.print(" 0x"); Serial.print(uid[i], HEX); 
+          // Serial.print(" 0x"); Serial.print(uid[i], HEX); 
         }
-        Serial.println("");
+        // Serial.println("");
         // test to check if it's the right card
         // should set the cards with a code to avoid having to fix the code when replacing defective or worn cards
         // if its the right card increments the cardsOk counter
@@ -146,7 +171,9 @@ void loop() {
         for ( int card_id = 0; card_id < NUM_CARDS; card_id++ ) {
           if (memcmp(CARDS[card_id], uid, 4) == 0) {
             // found a card in the card library, save on cards_on_table
-            Serial.println("Found card: pos(" + String(i)+") card("+String(card_id)+")");
+            if (cards_on_table[i] != card_id) {
+              Serial.println("Found card: pos(" + String(i)+") card("+String(card_id)+")");
+            }
             cards_on_table[i] = card_id;
             card_found = true;
             break;
@@ -190,8 +217,9 @@ void loop() {
   // reads the status sign
   {
     int rpgReset = 1;
-    // rpgReset = digitalRead(RPG_RESET);
+    rpgReset = digitalRead(RPG_RESET);
     if (!rpgReset) {
+      Serial.print("Game reset!");
       reset();
     }
   }
