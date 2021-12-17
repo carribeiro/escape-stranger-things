@@ -126,18 +126,19 @@ void setup() {
   
   pinMode(RPG_RESET, INPUT_PULLUP);
   pinMode(RPG_STATUS, OUTPUT);
+  reset_rpg();
 }
 
-void reset() {
+void reset_rpg() {
   // If the RPG_RESET pin is activated, clears the status to restart the game
   rpgStatus = false;
-  digitalWrite(RPG_STATUS, LOW);
+  digitalWrite(RPG_STATUS, HIGH);
 }
 
 void set_rpg_ok() {
   // game is solved, sthe the status pin HIGH and keep it until reset
   rpgStatus = true;
-  digitalWrite(RPG_STATUS, HIGH);
+  digitalWrite(RPG_STATUS, LOW);
 }
 
 void loop() {
@@ -220,7 +221,7 @@ void loop() {
     rpgReset = digitalRead(RPG_RESET);
     if (!rpgReset) {
       Serial.print("Game reset!");
-      reset();
+      reset_rpg();
     }
   }
 }
