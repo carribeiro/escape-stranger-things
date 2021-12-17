@@ -290,7 +290,7 @@ arvore_genealogica_ok = digitalRead(ARVORE_GENEALOGICA_OK);
 */
 void reset_game() {
   // configura pinos
-  pinMode(ARVORE_GENEALOGICA_OK, INPUT_PULLUP);
+  pinMode(INPUT_ARVORE_GENEALOGICA_OK, INPUT_PULLUP);
   pinMode(OUTPUT_QUADRO_OK, OUTPUT);
   pinMode(INPUT_RPG_OK, INPUT_PULLUP);
   pinMode(LED_RPG_OK, INPUT_PULLUP);
@@ -317,12 +317,16 @@ void reset_game() {
 }
 
 void setup() {
-  setup();
+  Serial.begin(115200);
+  Serial.println("START");
+  reset_game();
 }
 
 void loop() {
+  Serial.println("LOOP");
+
   // lê todos os sensores
-  arvore_genealogica_ok = digitalRead(ARVORE_GENEALOGICA_OK);
+  arvore_genealogica_ok = digitalRead(INPUT_ARVORE_GENEALOGICA_OK);
   rpg_ok = digitalRead(INPUT_RPG_OK);
   bombas_ok = digitalRead(INPUT_BOMBAS_OK);
   porta_armadilha = digitalRead(INPUT_PORTA_ARMADILHA);
@@ -341,10 +345,11 @@ void loop() {
   }
   
   // teste da armadilha
-  if (bombas_ok){
-  digitalWrite(OUTPUT_RESET_RPG, true);
-  
-  digitalWrite(OUTPUT_ARMADILHA_OK, true);
-  digitalWrite(OUTPUT_WILL_OK, true);
-}
+  if (bombas_ok) {
+    digitalWrite(OUTPUT_RESET_RPG, true);
+    digitalWrite(OUTPUT_ARMADILHA_OK, true);
+    digitalWrite(OUTPUT_WILL_OK, true);
+  }
+  delay(500);
+  Serial.println(".");
 }
