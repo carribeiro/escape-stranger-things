@@ -260,25 +260,32 @@ estiver ligado.
 
 #define INPUT_ARVORE_GENEALOGICA_OK (2)
 #define OUTPUT_QUADRO_OK (3)
+#define OUTPUT_TOMADA_TV (3)
+
 #define INPUT_RPG_OK (4)
 #define LED_RPG_OK A1
 #define INPUT_RPG_ON A2
 #define INPUT_RESET_RPG A3
 #define OUTPUT_RESET_RPG (5)
 #define OUTPUT_RPG_OK (6)
-#define INPUT_BOMBAS_OK (7)
-#define INPUT_PORTA_ARMADILHA (8)
-#define OUTPUT_ARMADILHA_OK (9)
+#define OUTPUT_TRAVA_ARMADILHA (6)
+
 #define INPUT_SENSOR_WILL_OK (10)
 #define INPUT_PORTA_ARMARIO (11)
 #define OUTPUT_WILL_OK (12)
-#define OUTPUT_PORTA_PRINCIPAL A4
+#define OUTPUT_TRAVA_ARMARIO (12)
 
+#define INPUT_BOMBAS_OK (7)
+#define INPUT_PORTA_ARMADILHA (8)
+#define OUTPUT_ARMADILHA_OK (9)
+#define OUTPUT_PORTA_PRINCIPAL A4
+#define OUTPUT_TRAVA_PRINCIPAL A4
 
 boolean porta_armadilha = true;
 boolean porta_armario = true;
 boolean porta_principal = true;
 boolean tomada_tv = false;
+
 //boolean luz_interna_armario = false;  // ver se precisa de um pino pra isso
 boolean arvore_genealogica_ok = true;
 boolean rpg_ok = false;
@@ -286,15 +293,9 @@ boolean bombas_ok = false;
 boolean sensor_will = false;
 boolean will_ok = false;
 
-/*
-arvore_genealogica_ok = digitalRead(ARVORE_GENEALOGICA_OK);
-  rpg_ok = digitalRead(INPUT_RPG_OK);
-  bombas_ok = digitalRead(INPUT_BOMBAS_OK);
-  porta_armadilha = digitalRead(INPUT_PORTA_ARMADILHA);
-  sensor_will = digitalRead(INPUT_SENSOR_WILL_OK);
-  porta_armario = digitalRead(INPUT_PORTA_ARMARIO);
-*/
+
 void reset_game() {
+
   // configura pinos
   pinMode(INPUT_ARVORE_GENEALOGICA_OK, INPUT_PULLUP);
   pinMode(OUTPUT_QUADRO_OK, OUTPUT);
@@ -310,36 +311,82 @@ void reset_game() {
   pinMode(OUTPUT_WILL_OK, OUTPUT);
   pinMode(OUTPUT_PORTA_PRINCIPAL, OUTPUT);
   
-  // zera variáveis de controle
-  digitalWrite(LED_RPG_OK, LOW);
+  desliga_tomada_tv();
+  reset_rpg();
+  trava_porta_armadilha();
+  trava_porta_armario();
+  trava_porta_principal();
 
+}
+
+void desliga_tomada_tv() {
+  Serial.println("Desliga tomada da TV");
   tomada_tv = false;
-  digitalWrite(OUTPUT_QUADRO_OK, LOW);
+  digitalWrite(OUTPUT_TOMADA_TV, LOW);
+}
 
-  porta_armadilha = true;
-  digitalWrite(OUTPUT_RPG_OK, HIGH);
+void liga_tomada_tv() {
+  Serial.println("Liga tomada da TV");
+  tomada_tv = true;
+  digitalWrite(OUTPUT_TOMADA_TV, HIGH);
+}
 
-  porta_armario = true;
-  digitalWrite(OUTPUT_WILL_OK, HIGH);
-
-  porta_principal = true;
-  digitalWrite(OUTPUT_PORTA_PRINCIPAL, HIGH);
-
-  //luz_interna_armario = false;
+void reset_rpg() {
+  Serial.println("Reseta o RPG");
+  digitalWrite(LED_RPG_OK, LOW);
   digitalWrite(OUTPUT_RESET_RPG, HIGH);
-  
+}
+
+void trava_porta_armadilha() {
+  Serial.println("Trava porta da armadilha");
+  porta_armadilha = true;
+  digitalWrite(OUTPUT_TRAVA_ARMADILHA, HIGH);
+}
+
+void destrava_porta_armadilha() {
+  Serial.println("Destrava porta da armadilha");
+  porta_armadilha = false;
+  digitalWrite(OUTPUT_TRAVA_ARMADILHA, LOW);
+}
+
+void trava_porta_armario() {
+  Serial.println("Trava porta do armário");
+  porta_armario = true;
+  digitalWrite(OUTPUT_TRAVA_ARMARIO, HIGH);
+}
+
+void destrava_porta_armario() {
+  Serial.println("Destrava porta do armário");
+  porta_armario = false;
+  digitalWrite(OUTPUT_TRAVA_ARMARIO, LOW);
+}
+
+void trava_porta_principal() {
+  Serial.println("Trava porta principal");
+  porta_principal = true;
+  digitalWrite(OUTPUT_TRAVA_PRINCIPAL, HIGH);
+}
+
+void destrava_porta_principal() {
+  Serial.println("Destrava porta principal");
+  porta_principal = false;
+  digitalWrite(OUTPUT_TRAVA_PRINCIPAL, LOW);
 }
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("START");
+  Serial.println();
+  Serial.println();
+  Serial.println();
+  Serial.println("BHESCAPE STRANGER THINGS");
+  Serial.println("NOVO JOGO");
   reset_game();
 }
 
 void loop() {
   // Serial.println("LOOP");
 
-  // lê todos os sensores
+  // ARVORE GENEALOGICA
   if (arvore_genealogica_ok != !digitalRead(INPUT_ARVORE_GENEALOGICA_OK)) {
     arvore_genealogica_ok = !digitalRead(INPUT_ARVORE_GENEALOGICA_OK);
     if (arvore_genealogica_ok) {
@@ -357,6 +404,7 @@ void loop() {
     }
   }
 
+  // RPG
   if (rpg_ok != !digitalRead(INPUT_RPG_OK)) {
     rpg_ok = !digitalRead(INPUT_RPG_OK);
     if (rpg_ok) {
@@ -374,13 +422,6 @@ void loop() {
       */
     }
   }
-
-  /*
-  bombas_ok = digitalRead(INPUT_BOMBAS_OK);
-  porta_armadilha = digitalRead(INPUT_PORTA_ARMADILHA);
-  sensor_will = digitalRead(INPUT_SENSOR_WILL_OK);
-  porta_armario = digitalRead(INPUT_PORTA_ARMARIO);
-  */
 
   if (will_ok != !digitalRead(INPUT_SENSOR_WILL_OK)) {
     will_ok = !digitalRead(INPUT_SENSOR_WILL_OK);
@@ -426,31 +467,45 @@ void loop() {
     if(Serial.available()) {
         input = Serial.readStringUntil('\n');
         input.trim();
-        Serial.print("<"); Serial.print(input); Serial.print("> "); Serial.println(input.length());
         if (input.equalsIgnoreCase("STATUS")) {
-           Serial.print("WILL_OK:"); Serial.println(digitalRead(INPUT_SENSOR_WILL_OK));
+          Serial.println();
+          Serial.println("STATUS");
+          Serial.print("Árvore: "); Serial.println(digitalRead(INPUT_ARVORE_GENEALOGICA_OK));
+          Serial.print("RPG: "); Serial.println(digitalRead(INPUT_RPG_OK));
+          Serial.print("Porta armadilha: "); Serial.println(digitalRead(INPUT_PORTA_ARMADILHA));
+          Serial.print("Porta armário: "); Serial.println(digitalRead(INPUT_PORTA_ARMARIO));
+          Serial.print("Will: "); Serial.println(digitalRead(INPUT_SENSOR_WILL_OK));
+          Serial.print("Bombas: "); Serial.println(digitalRead(INPUT_BOMBAS_OK));
         }
-        if (input.equalsIgnoreCase("RESTART")) {
-           Serial.println("Travando porta principal"); 
-           reset_game();
+        else if (input.equalsIgnoreCase("RESTART")) {
+          Serial.println("Travando porta principal"); 
+          reset_game();
         }
-        if (input.equals("FIM")) {
-           Serial.println("Abrindo porta principal"); 
-           porta_principal = false;
-           digitalWrite(OUTPUT_PORTA_PRINCIPAL, LOW);
+        else if (input.equalsIgnoreCase("ABRIR SALA")) {
+          destrava_porta_principal();
         }
-        if (input.equals("FECHAR")) {
-           Serial.println("Travando porta principal"); 
-           porta_principal = true;
-           digitalWrite(OUTPUT_PORTA_PRINCIPAL, HIGH);
+        else if (input.equalsIgnoreCase("FECHAR SALA")) {
+          trava_porta_principal();
         }
-        if (input.equals("RPG_OK")) {
+        else if (input.equalsIgnoreCase("ABRIR ARMADILHA")) {
+          destrava_porta_armadilha();
+        }
+        else if (input.equalsIgnoreCase("FECHAR ARMADILHA")) {
+          trava_porta_armadilha();
+        }
+        else if (input.equalsIgnoreCase("ABRIR ARMARIO")) {
+          destrava_porta_armario();
+        }
+        else if (input.equalsIgnoreCase("FECHAR ARMARIO")) {
+          destrava_porta_armario();
+        }
+        else if (input.equalsIgnoreCase("RESET RPG")) {
            Serial.println("RPG_OK"); 
            digitalWrite(LED_RPG_OK, HIGH);
         }
-        if (input.equals("RPG_NOK")) {
-           Serial.println("RPG_NOK"); 
-           digitalWrite(LED_RPG_OK, LOW);
+        else {
+          Serial.print("Comando não reconhecido: <");
+          Serial.print(input); Serial.print("> "); Serial.println(input.length());
         }
     }
   
