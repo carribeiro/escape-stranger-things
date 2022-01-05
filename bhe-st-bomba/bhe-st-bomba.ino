@@ -4,6 +4,8 @@
 //Biblioteca dos Neopixels
 #include <Adafruit_NeoPixel.h>
 
+#define tempo (300)
+
 // FITAS COLUNA (2X DE 7 LEDS)
 #define LED_PIN     4
 // How many NeoPixels are attached to the Arduino?
@@ -29,6 +31,7 @@
 #define BOMBA_START 1
 #define BOMBA_ONLINE 2
 #define BOMBA_ARMADA 3
+#define BUZZER 8
 
 int status_bomba = BOMBA_STANDBY;
 int status_animacao = 0;
@@ -127,6 +130,7 @@ void loop() {
       }
     }
   }
+  oldState = newState;
 
   switch (status_bomba) {
     case BOMBA_STANDBY:
@@ -195,8 +199,8 @@ void loop() {
       if (status_animacao == 0) {
         seta_led_base_bomba(led_base_bomba.Color(127,   0,   0)); // red
         seta_led_corpo_bomba(led_corpo_bomba.Color(127,   0,   0));        
-        tone(8, 950, 350); 
-        delay(150);
+        tone(BUZZER, 950, 350); 
+        delay(tempo);
         status_animacao = 1;
       }
       else {
@@ -204,8 +208,8 @@ void loop() {
         led_base_bomba.show();
         led_corpo_bomba.clear();
         led_corpo_bomba.show();
-        tone(8, 200, 350);
-        delay(150);
+        tone(BUZZER, 200, 350);
+        delay(tempo);
         status_animacao = 0;
       }
 

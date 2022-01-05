@@ -33,8 +33,8 @@
 #include <Adafruit_PN532.h>
 
 // Control pins
-#define RPG_RESET 2
-#define RPG_STATUS 3
+#define RPG_RESTART 3
+#define RPG_STATUS 2
 
 // If using the breakout with SPI, define the pins for SPI communication.
 #define PN532_SCK  (13)
@@ -57,6 +57,12 @@ boolean nfc_found[NUM_ADAPTERS] = {false, false, false, false};
 String data[NUM_ADAPTERS];
 boolean dataUpdate = false;
 boolean rpgStatus = false;
+
+#define STATE_WAITCLEAR (0)
+#define STATE_WAITCARDS (1)
+#define STATE_RPGOK (2)
+int rpgState = STATE_WAITCLEAR;
+int rpgReset = HIGH;
 
 // CARTAS
 #define NUM_CARDS 9
@@ -96,7 +102,6 @@ char CARDS[NUM_CARDS][4] = {
 
 // SOLUÇÃO RPG: Estopa, Felipe, Pedro e Mudinho
 char RPG_answer[NUM_ADAPTERS] = { ID_MUDINHO_BARDO, ID_PEDRO_DRUIDA, ID_FELIPE_BARBARO, ID_ESTOPA_CINZENTO };
-
 int cardsOk = 0;
 int cards_on_table[NUM_ADAPTERS] = {ID_NONE,ID_NONE,ID_NONE,ID_NONE};
 
@@ -124,25 +129,12 @@ void setup() {
     }
   }
   
-  pinMode(RPG_RESET, INPUT_PULLUP);
+  pinMode(RPG_RESTART, INPUT_PULLUP);
   pinMode(RPG_STATUS, OUTPUT);
-  reset_rpg();
-}
-
-void reset_rpg() {
-  // If the RPG_RESET pin is activated, clears the status to restart the game
-  rpgStatus = false;
-  digitalWrite(RPG_STATUS, HIGH);
-}
-
-void set_rpg_ok() {
-  // game is solved, sthe the status pin HIGH and keep it until reset
-  rpgStatus = true;
-  digitalWrite(RPG_STATUS, LOW);
+  rpgState = STATE_WAITCLEAR;
 }
 
 void loop() {
-  if (!rpgStatus) {
     for ( int i = 0; i < NUM_ADAPTERS; i++ ) {
       if (!nfc_found[i]) continue;
       boolean success;
@@ -209,19 +201,54 @@ void loop() {
         cardsOk++;        
       }
     }
-    if (cardsOk == 4) {
-      Serial.print("Game solved!");
-      set_rpg_ok();
-    }
-  }
 
-  // reads the status sign
-  {
-    int rpgReset = 1;
-    rpgReset = digitalRead(RPG_RESET);
-    if (!rpgReset) {
-      Serial.print("Game reset!");
-      reset_rpg();
+    // check state
+    switch(rpgState) {
+      case STATE_WAITCLEAR: 
+        // waits until there are zero cards in place to start the game, keeping the status low
+        if (cardsOk == 0) {
+          rpgStatus = false;
+          digitalWrite(RPG_STATUS, HIGH);
+          rpgState = STATE_WAITCARDS;
+          Serial.println("Waiting cards!");
+        }
+        else {
+          Serial.print(cardsOk);          
+          Serial.println(" cartas a remover!");          
+        }
+        break;
+      case STATE_WAITCARDS: 
+        // waits until there are four cards in place to finish the game
+        if (cardsOk == 4) {
+          rpgStatus = true;
+          digitalWrite(RPG_STATUS, LOW);
+          rpgState = STATE_RPGOK;
+          Serial.println("Game ok!");
+        }
+        break;
+      case STATE_RPGOK: 
+        // game ok, keeps the status sign as "ok" independently of cards being removed
+        Serial.println("Waiting to reset!");
+        break;
     }
+
+  // reads the reset sign; if it's DOWN and if it was previously UP, triggers the reset
+  if (!digitalRead(RPG_RESTART) && rpgReset) {
+    Serial.println("Game reset!");
+    rpgStatus = false;
+    digitalWrite(RPG_STATUS, HIGH);
+    rpgState = STATE_WAITCLEAR;
   }
+  rpgReset = digitalRead(RPG_RESTART);
+
+  String input;
+  if(Serial.available()) {
+      input = Serial.readStringUntil('\n');
+      Serial.println(input);
+      if (input.equals("WAITCARDS\n")) {
+        Serial.println("Force WAITCARDS");
+        rpgState = STATE_WAITCARDS;
+      }
+  }
+  
 }
