@@ -287,12 +287,20 @@ boolean porta_principal = true;
 boolean tomada_tv = false;
 
 //boolean luz_interna_armario = false;  // ver se precisa de um pino pra isso
-boolean arvore_genealogica_ok = true;
-boolean rpg_ok = false;
-boolean bombas_ok = false;
-boolean sensor_will = false;
-boolean will_ok = false;
 
+boolean arvore_genealogica_ok = false;
+boolean rpg_ok = false;
+boolean sensor_porta_armadilha = false;
+boolean sensor_porta_armario = false;
+boolean sensor_will_ok = false;
+boolean bombas_ok = false;
+
+boolean old_arvore_genealogica_ok = false;
+boolean old_rpg_ok = false;
+boolean old_sensor_porta_armadilha = false;
+boolean old_sensor_porta_armario = false;
+boolean old_sensor_will_ok = false;
+boolean old_bombas_ok = false;
 
 void reset_game() {
 
@@ -317,6 +325,7 @@ void reset_game() {
   trava_porta_armario();
   trava_porta_principal();
 
+  atualiza_status();
 }
 
 void desliga_tomada_tv() {
@@ -373,6 +382,45 @@ void destrava_porta_principal() {
   digitalWrite(OUTPUT_TRAVA_PRINCIPAL, LOW);
 }
 
+boolean atualiza_status() {
+  // save old status
+  old_arvore_genealogica_ok = arvore_genealogica_ok;
+  old_rpg_ok = rpg_ok;
+  old_sensor_porta_armadilha = sensor_porta_armadilha;
+  old_sensor_porta_armario = sensor_porta_armario;
+  old_sensor_will_ok = sensor_will_ok;
+  old_bombas_ok = bombas_ok;
+
+  // read new status; signals that are true when LOW are inverted on read to simplify logic
+  arvore_genealogica_ok = !digitalRead(INPUT_ARVORE_GENEALOGICA_OK);
+  rpg_ok = !digitalRead(INPUT_RPG_OK);
+  sensor_porta_armadilha = !digitalRead(INPUT_PORTA_ARMADILHA);
+  sensor_porta_armario = !digitalRead(INPUT_PORTA_ARMARIO);
+  sensor_will_ok = !digitalRead(INPUT_SENSOR_WILL_OK);
+  bombas_ok = !digitalRead(INPUT_BOMBAS_OK);   
+
+  // returns true if anything changed
+  return (
+    (arvore_genealogica_ok != old_arvore_genealogica_ok) ||
+    (rpg_ok != old_rpg_ok) ||
+    (sensor_porta_armadilha != old_sensor_porta_armadilha) ||
+    (sensor_porta_armario != old_sensor_porta_armario) ||
+    (sensor_will_ok != old_sensor_will_ok) ||
+    (bombas_ok != old_bombas_ok)
+    );
+}
+
+void imprime_status() {
+  Serial.println();
+  Serial.print("STATUS ("); Serial.print(long(millis()/1000)); Serial.println(")");
+  Serial.print("Árvore: "); Serial.println(arvore_genealogica_ok);
+  Serial.print("RPG: "); Serial.println(rpg_ok);
+  Serial.print("Porta armadilha: "); Serial.println(sensor_porta_armadilha);
+  Serial.print("Porta armário: "); Serial.println(sensor_porta_armario);
+  Serial.print("Will: "); Serial.println(sensor_will_ok);
+  Serial.print("Bombas: "); Serial.println(bombas_ok);  
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println();
@@ -386,9 +434,15 @@ void setup() {
 void loop() {
   // Serial.println("LOOP");
 
+  boolean status_changed;
+
+  status_changed = atualiza_status();
+  if (status_changed) {
+    imprime_status();
+  }
+
   // ARVORE GENEALOGICA
-  if (arvore_genealogica_ok != !digitalRead(INPUT_ARVORE_GENEALOGICA_OK)) {
-    arvore_genealogica_ok = !digitalRead(INPUT_ARVORE_GENEALOGICA_OK);
+  if (arvore_genealogica_ok != old_arvore_genealogica_ok) {
     if (arvore_genealogica_ok) {
       Serial.println("Árvore OK");
       tomada_tv = false;  
@@ -405,8 +459,7 @@ void loop() {
   }
 
   // RPG
-  if (rpg_ok != !digitalRead(INPUT_RPG_OK)) {
-    rpg_ok = !digitalRead(INPUT_RPG_OK);
+  if (rpg_ok != old_rpg_ok) {
     if (rpg_ok) {
       Serial.println("RPG OK");
       digitalWrite(LED_RPG_OK, HIGH);
@@ -423,9 +476,8 @@ void loop() {
     }
   }
 
-  if (will_ok != !digitalRead(INPUT_SENSOR_WILL_OK)) {
-    will_ok = !digitalRead(INPUT_SENSOR_WILL_OK);
-    if (will_ok) {
+  if (sensor_will_ok != old_sensor_will_ok) {
+    if (sensor_will_ok) {
       Serial.println("Will OK");
       // desliga o relé pra abrir a porta do armário
       digitalWrite(OUTPUT_WILL_OK, LOW);
@@ -438,7 +490,7 @@ void loop() {
     }
   }
 
-  if (bombas_ok != !digitalRead(INPUT_BOMBAS_OK)) {
+  if (bombas_ok != old_bombas_ok) {
     bombas_ok = !digitalRead(INPUT_BOMBAS_OK);
     if (bombas_ok) {
       Serial.println("Bombas OK");
@@ -448,66 +500,44 @@ void loop() {
     }
   }
 
-  // teste do RPG
-  // RESET = LARANJA
-  // SINAL = AMARELO
-  //if (rpg_ok) {
-  //  digitalWrite(LED_RPG_OK, true);
-  //  digitalWrite(OUTPUT_RPG_OK, true);
-  //}
+  String input;
+  if(Serial.available()) {
+      input = Serial.readStringUntil('\n');
+      input.trim();
+      if (input.equalsIgnoreCase("STATUS")) {
+        imprime_status();
+      }
+      else if (input.equalsIgnoreCase("RESTART")) {
+        Serial.println("Travando porta principal"); 
+        reset_game();
+      }
+      else if (input.equalsIgnoreCase("ABRIR SALA")) {
+        destrava_porta_principal();
+      }
+      else if (input.equalsIgnoreCase("FECHAR SALA")) {
+        trava_porta_principal();
+      }
+      else if (input.equalsIgnoreCase("ABRIR ARMADILHA")) {
+        destrava_porta_armadilha();
+      }
+      else if (input.equalsIgnoreCase("FECHAR ARMADILHA")) {
+        trava_porta_armadilha();
+      }
+      else if (input.equalsIgnoreCase("ABRIR ARMARIO")) {
+        destrava_porta_armario();
+      }
+      else if (input.equalsIgnoreCase("FECHAR ARMARIO")) {
+        trava_porta_armario();
+      }
+      else if (input.equalsIgnoreCase("RESET RPG")) {
+         Serial.println("RPG_OK"); 
+         digitalWrite(LED_RPG_OK, HIGH);
+      }
+      else {
+        Serial.print("Comando não reconhecido: <");
+        Serial.print(input); Serial.print("> "); Serial.println(input.length());
+      }
+  }
   
-  // teste da armadilha
-  //if (bombas_ok) {
-  //  digitalWrite(OUTPUT_RESET_RPG, true);
-  //  digitalWrite(OUTPUT_ARMADILHA_OK, true);
-  //  digitalWrite(OUTPUT_WILL_OK, true);
-  //}
-
-    String input;
-    if(Serial.available()) {
-        input = Serial.readStringUntil('\n');
-        input.trim();
-        if (input.equalsIgnoreCase("STATUS")) {
-          Serial.println();
-          Serial.println("STATUS");
-          Serial.print("Árvore: "); Serial.println(digitalRead(INPUT_ARVORE_GENEALOGICA_OK));
-          Serial.print("RPG: "); Serial.println(digitalRead(INPUT_RPG_OK));
-          Serial.print("Porta armadilha: "); Serial.println(digitalRead(INPUT_PORTA_ARMADILHA));
-          Serial.print("Porta armário: "); Serial.println(digitalRead(INPUT_PORTA_ARMARIO));
-          Serial.print("Will: "); Serial.println(digitalRead(INPUT_SENSOR_WILL_OK));
-          Serial.print("Bombas: "); Serial.println(digitalRead(INPUT_BOMBAS_OK));
-        }
-        else if (input.equalsIgnoreCase("RESTART")) {
-          Serial.println("Travando porta principal"); 
-          reset_game();
-        }
-        else if (input.equalsIgnoreCase("ABRIR SALA")) {
-          destrava_porta_principal();
-        }
-        else if (input.equalsIgnoreCase("FECHAR SALA")) {
-          trava_porta_principal();
-        }
-        else if (input.equalsIgnoreCase("ABRIR ARMADILHA")) {
-          destrava_porta_armadilha();
-        }
-        else if (input.equalsIgnoreCase("FECHAR ARMADILHA")) {
-          trava_porta_armadilha();
-        }
-        else if (input.equalsIgnoreCase("ABRIR ARMARIO")) {
-          destrava_porta_armario();
-        }
-        else if (input.equalsIgnoreCase("FECHAR ARMARIO")) {
-          destrava_porta_armario();
-        }
-        else if (input.equalsIgnoreCase("RESET RPG")) {
-           Serial.println("RPG_OK"); 
-           digitalWrite(LED_RPG_OK, HIGH);
-        }
-        else {
-          Serial.print("Comando não reconhecido: <");
-          Serial.print(input); Serial.print("> "); Serial.println(input.length());
-        }
-    }
-  
-  delay(500);
+  delay(100);
 }
