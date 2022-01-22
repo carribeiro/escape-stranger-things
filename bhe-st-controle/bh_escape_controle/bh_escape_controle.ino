@@ -2,423 +2,274 @@
 // CAIXA DE CONTROLE BH ESCAPE
 // SALA STRANGER THINGS
 //
-
-/****************************************************************************
-
-FUNCIONAMENTO
-
-Árvore Genealógica
-------------------
-
-CHAVE_LIGA_ARVORE: Chave que liga o circuito de alimentação do quadro. 
-Comando elétrico direto (não é acionado pelo microcontrolador).
-
-LED_QUADRO_LIGADO: Led que fica aceso quando o quadro está alimentado. 
-Alimentação direta pelo circuito, não passa pelo microcontrolador.
-
-  - Resistor de 150 ohms (5 VDC).
-
-INPUT_ARVORE_GENEALOGICA_OK: Pino de entrada com pullup, serve para receber
-o sinal dos reed switches. Quando o pino fica LOW indica que o quadro está
-solucionado.
-
-  - Configuração do pino: INPUT_PULLUP
-
-BOTAO_BYPASS_ARVORE: Botão de pulso, montado em paralelo com o sinal 
-INPUT_ARVORE_GENEALOGICA_OK. Quando pressionado, libera o jogo como se
-estivesse solucionado.
-
-LED_QUADROS_OK: Led que fica aceso quando o quadro for solucionado. 
-Alimentação direta pelo circuito, não passa pelo microcontrolador.
-
-  - Resistor de 150 ohms (5 VDC).
-
-OUTPUT_QUADRO_OK: Sinal de controle que arma o relé da TV. 
-
-  - Configuração do pino: OUTPUT
-  - Conectado ao relé 01 do banco de relés
-  - Sinal de controle a definir (12 VDC ou 127 VAC)
-
-CHAVE_LIGA_TV: Chave que liga a TV. Fica em paralelo com o relé de controle
-da TV. Quando ligada, força a tomada da TV a ficar ligada. Quando DESLIGADA
-permite que o relé faça o controle da TV.
-
-LED_TV_LIGADA. LED que fica aceso enquanto o relé estiver ligado.
-
---> Ainda tenho dúvida de como ligar isso; se a TV fosse alimentada com
-12VDC seria mais fácil, bastava pegar a saída de 12VDC com um resistor 
-adequado (470 ohms).
-
---> Se a TV utilizar uma tomada de 127 VDC o circuito precisa de diodos de 
-proteção e um resistor com capacidade de dissipação suficiente; ou ainda, de
-um circuito onde um capacitor de 1 uF faz o papel de um "falso resistor".
-
-Ref.:
-https://ensinandoeletrica.blogspot.com/2017/11/como-ligar-leds-em-127v-ou-220v.html
-
-
-RPG
----
-
-CHAVE_LIGA_RPG: Chave que liga o circuito de alimentação do RPG. Envia 127 
-VDC para a mesa, que tem alimentação própria com carregador embutido.
-
-  Observações:
-  - poderia ter sido feito com alimentação de 12 VDC entrando direto por 
-    regulador de tensão, para dar mais segurança.
-  - chave dupla, que liga um circuito de 12 VDC que alimenta a tranca 
-    e também o LED_RPG_LIGADO com um resistor apropriado.
-
-LED_RPG_LIGADO: Led alimentado diretamente pela CHAVE_LIGA_RPG (chave 
-dupla com circuito secundário de 12 VDC). 
-
-  - Resistor de 470 ohms (12 VDC).
-
---> verificar interação do circuito; acho que o controle da porta da 
-armadilha precisa, por segurança, ficar dependente de o RPG estar sempre
-ligado. se estiver desligado, a porta fica destrancada. isso dá segurança 
-de não deixar ninguém trancado.
-
-INPUT_RPG_OK: Pino de entrada com pullup, serve para receber o sinal do 
-RPG. Quando o pino fica LOW indica que o RPG está solucionado.
-
-  Observações:
-  - Configuração do pino: INPUT_PULLUP
-  - O pino de controle na mesa de RPG fica configurado como INPUT (estado de
-    alta impedância), fazendo com que o PULLUP da entrada da mesa de controle
-    garanta a leitura do nivel HIGH. Quando o jogo é resolvido a mesa de RPG
-    comuta o pino para OUTPUT com sinal LOW, aterrando a saída.
-
-BOTAO_BYPASS_RPG: Botão de pulso, montado em paralelo com o sinal de entrada
-da INPUT_RPG_OK. Quando pressionado, libera o RPG como se estivesse
-solucionado.
-
-LED_RPG_OK: Led que fica aceso quando o RPG for solucionado. Por segurança,
-será alimentado pelo microcontrolador.
-
-  - Configuração do pino: OUTPUT
-  - Resistor de 150 ohms (5 VDC).
-
-BOTAO_RESET_RPG: Botão de pulso, quando acionado envia sinal LOW para o 
-microcontrolador da mesa de RPG. Necessário para reiniciar o jogo depois de
-resolvido.
-
-  Observação:
-  - Quando o jogo RPG é ligado, se as cartas já estiverem no lugar, ele NÃO
-    ENVIA O SINAL; precisa zerar a mesa primeiro.
-
-OUTPUT_RESET_RPG: saída ligada diretamente ao BOTAO_RESET_RPG, não passa 
-pelo microcontrolador.
-
-OUTPUT_RPG_OK: Sinal de controle que arma o relé da porta da armadilha. 
-
-  - Configuração do pino: OUTPUT
-  - Conectado ao relé 02 do banco de relés
-  - Sinal de controle de 12 VDC.
-
-CHAVE_TRANCA_PORTA_ARMADILHA: Chave que controla diretamente a porta da 
-armadilha. Fica em paralelo com o relé de controle da porta. Quando ligada,
-força a porta ficar TRANCADA. Quando DESLIGADA, permite que o relé faça o
-controle da porta.
-
-LED_TRANCA_PORTA_ARMADILHA: LED que fica aceso enquanto o relé da tranca 
-estiver ligado. 
-
-  Observação:
-  - Resistor de 470 ohms (12 VDC).
-
-
-Armadilha
----------
-
-CHAVE_LIGA_ARMADILHA: Chave que liga o circuito de alimentação da Armadilha
-(controle das bombas). Envia 127 VDC para a caixa das bombas, que tem 
-alimentação própria com fonte de 12 VDC embutida.
-
-  Observações:
-  - não oferece riscos de segurança tão grandes, pois a caixa é fechada e 
-    fica na parede (não tem cabo debaixo do tapete).
-
-LED_BASES_LIGADAS: Led alimentado diretamente pela CHAVE_LIGA_RPG (chave 
-dupla com circuito secundário de 12 VDC). 
-
-  - Resistor de 470 ohms (12 VDC).
-
-INPUT_BOMBAS_OK: Pino de entrada com pullup, serve para receber o sinal das 
-bombas. Quando o pino fica LOW indica que as bombas estão todas armadas.
-
-  Observações:
-  - Configuração do pino: INPUT_PULLUP
-  - Ver observação sobre pino de controle da mesa de RPG (mesmo esquema).
-
-INPUT_PORTA_ARMADILHA: Pino de entrada com pullup, serve para receber o 
-sinal da porta da armadilha, indicando que está fechada. Quando o pino fica
-LOW indica que a porta está fechada; HIGH indica porta aberta.
-
-  Observações:
-  - Configuração do pino: INPUT_PULLUP
-  - Mesmo esquema do quadro da Árvore Genealógica (reed switch direto).
-
-BOTAO_BYPASS_ARMADILHA: Botão de pulso, montado em paralelo com o sinal de 
-entrada da INPUT_BOMBAS_OK e INPUT_PORTA_ARMADILHA. Quando pressionado, 
-libera a armadilha como se estivesse solucionada (aterra os dois sinais).
-
---> importante: todos os sinais de controle precisam de um resistor de 
-proteção que fica nos módulos remotos (RPG ou Armadilha), dimensionado entre
-270 ohms e 470 ohms. Isso evita que um sinal de saída em HIGH (que não 
-deveria acontecer, mas pode por conta de algum bug) não gere um curto com os
-botões de bypass que jogam o sinal para o terra diretamente.
-
-LED_BOMBAS_ATIVAS: Led que fica aceso quando todas as bombas forem ativadas.
-Por segurança, será alimentado pelo microcontrolador.
-
-  - Configuração do pino: OUTPUT
-  - Resistor de 150 ohms (5 VDC).
-
-LED_PORTA_FECHADA: Led que fica aceso quando a porta estiver fechada. O 
-sensor reed fecha e permite o acendimento direto do LED (não passa pelo 
-microcontrolador).
-
-  - Resistor de 150 ohms (5 VDC).
-
-OUTPUT_ARMADILHA_OK: Sinal de controle que indica explosão da bomba. Efeito
-temporizado, alimenta um relé. Temporizado (tempo de efeito a decidir).
-
-  - Configuração do pino: OUTPUT
-  - Conectado ao relé 03 do banco de relés
-  - Sinal de controle de 12 VDC.
-
-LED_EXPLOSÃO_BOMBA: Led acionado pelo relé 03 (ativado pelo sinal 
-OUTPUT_ARMADILHA_OK).
-
-
-Carta Will
-----------
-
-CHAVE_LIGA_CARTA_WILL: Chave que liga o circuito de alimentação da Carta
-Will (quebra cabeças do armário). Chave dupla; a chave (A) libera 12 VDC
-para acionar o relé da tranca do armário, a chave (B) conecta o sinal de 
-terra de referência para acendimento dos LEDs, etc.
-
-LED_WILL_LIGADO: Led alimentado diretamente pela CHAVE_LIGA_CARTA_WILL
-(chave dupla).
-
-  - Resistor de 470 ohms (12 VDC).
-
-INPUT_SENSOR_WILL_OK: Pino de entrada com pullup, serve para receber o sinal
-da reed switch do sensor Will. Quando o pino fica LOW indica que o objeto
-está corretamente posicionado.
-
-  Observações:
-  - Configuração do pino: INPUT_PULLUP
-  - Mesmo esquema do quadro da Árvore Genealógica (reed switch direto).
-
-LED_SENSOR_WILL_ATIVADO: Led alimentado diretamente pelo reed switch do 
-SENSOR WILL.
-
-  - Resistor de 150 ohms (5 VDC).
-
-INPUT_PORTA_ARMARIO: Pino de entrada com pullup, serve para receber o 
-sinal da porta do armário, indicando que está fechada. Quando o pino fica
-LOW indica que a porta está fechada; HIGH indica porta aberta.
-
-  Observações:
-  - Configuração do pino: INPUT_PULLUP
-  - Mesmo esquema do quadro da Árvore Genealógica (reed switch direto).
-
-LED_ARMARIO_ABERTO: Led alimentado diretamente pelo reed switch do 
-INPUT_PORTA_ARMARIO.
-
-  - Resistor de 150 ohms (5 VDC).
-
-OUTPUT_WILL_OK: Sinal de controle que arma o relé da porta do armário. 
-
-  - Configuração do pino: OUTPUT
-  - Conectado ao relé 04 do banco de relés
-  - Sinal de controle de 12 VDC
-
-BOTAO_BYPASS_WILL: Botão de pulso, montado em paralelo com o sinal de 
-entrada de INPUT_SENSOR_WILL_OK. Quando pressionado, libera a porta do 
-armário como se estivesse solucionada.
-
-CHAVE_TRANCA_PORTA_ARMARIO: Chave que controla diretamente a porta da 
-armadilha. Fica em paralelo com o relé de controle da porta. Quando ligada,
-força a porta ficar TRANCADA. Quando DESLIGADA, permite que o relé faça o
-controle da porta.
-
-LED_TRANCA_PORTA_ARMARIO: LED que fica aceso enquanto o relé da tranca 
-estiver ligado. 
-
-  Observação:
-  - Resistor de 470 ohms (12 VDC).
-
-****************************************************************************/
-
-
-
 // pins
 
-#define INPUT_ARVORE_GENEALOGICA_OK (2)
-#define OUTPUT_QUADRO_OK (3)
-#define OUTPUT_TOMADA_TV (3)
+#define IN_ARVORE_LIGADA       (2)
+#define IN_ARVORE_OK           (3)
+#define LED_ARVORE_OK          (4)
+#define IN_RPG_LIGADO          (5)
+#define IN_RPG_OK              (6)
+#define LED_RPG_OK             (7)
+#define IN_WILL_LIGADO         (8)
+#define IN_WILL_OK             (9)
+#define LED_WILL_OK            (10)
+#define IN_ARMADILHA_LIGADA    (11)
+#define IN_ARMADILHA_OK        (12)
+#define LED_ARMADILHA_OK       (13)
+#define RELE_LIGA_TV           (A0)
+#define RELE_PORTA_ARMADILHA   (A1)
+#define RELE_PORTA_ARMARIO     (A2)
+#define RELE_PORTA_PRINCIPAL   (A3)
+#define IN_RESTART_ARVORE      (A4)
+#define IN_RESTART_RPG         (A5)
+#define IN_RESTART_WILL        (A5)
+#define IN_RESTART_ARMADILHA   (A7)
 
-#define INPUT_RPG_OK (4)
-#define LED_RPG_OK A1
-#define INPUT_RPG_ON A2
-#define INPUT_RESET_RPG A3
-#define OUTPUT_RESET_RPG (5)
-#define OUTPUT_RPG_OK (6)
-#define OUTPUT_TRAVA_ARMADILHA (6)
+boolean arvore_ligada = false;
+boolean rpg_ligado = false;
+boolean will_ligado = false;
+boolean armadilha_ligada = false;
 
-#define INPUT_SENSOR_WILL_OK (10)
-#define INPUT_PORTA_ARMARIO (11)
-#define OUTPUT_WILL_OK (12)
-#define OUTPUT_TRAVA_ARMARIO (12)
-
-#define INPUT_BOMBAS_OK (7)
-#define INPUT_PORTA_ARMADILHA (8)
-#define OUTPUT_ARMADILHA_OK (9)
-#define OUTPUT_PORTA_PRINCIPAL A4
-#define OUTPUT_TRAVA_PRINCIPAL A4
-
-boolean porta_armadilha = true;
-boolean porta_armario = true;
-boolean porta_principal = true;
-boolean tomada_tv = false;
-
-//boolean luz_interna_armario = false;  // ver se precisa de um pino pra isso
-
-boolean arvore_genealogica_ok = false;
+boolean arvore_ok = false;
 boolean rpg_ok = false;
-boolean sensor_porta_armadilha = false;
-boolean sensor_porta_armario = false;
-boolean sensor_will_ok = false;
-boolean bombas_ok = false;
+boolean will_ok = false;
+boolean armadilha_ok = false;
 
-boolean old_arvore_genealogica_ok = false;
-boolean old_rpg_ok = false;
-boolean old_sensor_porta_armadilha = false;
-boolean old_sensor_porta_armario = false;
-boolean old_sensor_will_ok = false;
-boolean old_bombas_ok = false;
+boolean arvore_resolvida = false;
+boolean rpg_resolvido = false;
+boolean will_resolvido = false;
+boolean armadilha_resolvida = false;
 
 void reset_game() {
 
   // configura pinos
-  pinMode(INPUT_ARVORE_GENEALOGICA_OK, INPUT_PULLUP);
-  pinMode(OUTPUT_QUADRO_OK, OUTPUT);
-  pinMode(INPUT_RPG_OK, INPUT_PULLUP);
+  pinMode(IN_ARVORE_LIGADA, INPUT); // pulldown?
+  pinMode(IN_ARVORE_OK, INPUT_PULLUP);
+  pinMode(LED_ARVORE_OK, OUTPUT);
+  pinMode(IN_RPG_LIGADO, INPUT);
+  pinMode(IN_RPG_OK, INPUT_PULLUP);
   pinMode(LED_RPG_OK, OUTPUT);
-  pinMode(OUTPUT_RESET_RPG, OUTPUT);
-  pinMode(OUTPUT_RPG_OK, OUTPUT);
-  pinMode(INPUT_BOMBAS_OK, INPUT_PULLUP);
-  pinMode(INPUT_PORTA_ARMADILHA, INPUT_PULLUP);
-  pinMode(OUTPUT_ARMADILHA_OK , OUTPUT);
-  pinMode(INPUT_SENSOR_WILL_OK, INPUT_PULLUP);
-  pinMode(INPUT_PORTA_ARMARIO, INPUT_PULLUP);
-  pinMode(OUTPUT_WILL_OK, OUTPUT);
-  pinMode(OUTPUT_PORTA_PRINCIPAL, OUTPUT);
-  
-  desliga_tomada_tv();
-  reset_rpg();
-  trava_porta_armadilha();
-  trava_porta_armario();
-  trava_porta_principal();
+  pinMode(IN_WILL_LIGADO, INPUT);
+  pinMode(IN_WILL_OK, INPUT_PULLUP);
+  pinMode(LED_WILL_OK, OUTPUT);
+  pinMode(IN_ARMADILHA_LIGADA, INPUT);
+  pinMode(IN_ARMADILHA_OK, INPUT_PULLUP);
+  pinMode(LED_ARMADILHA_OK, OUTPUT);
+  pinMode(RELE_LIGA_TV, OUTPUT);
+  pinMode(RELE_PORTA_ARMADILHA, OUTPUT);
+  pinMode(RELE_PORTA_ARMARIO, OUTPUT);
+  pinMode(RELE_PORTA_PRINCIPAL, OUTPUT);
+  pinMode(IN_RESTART_ARVORE, INPUT_PULLUP);
+  pinMode(IN_RESTART_RPG, INPUT_PULLUP);
+  pinMode(IN_RESTART_WILL, INPUT_PULLUP);
+  pinMode(IN_RESTART_ARMADILHA, INPUT_PULLUP);
 
-  atualiza_status();
+  // zera variáveis de controle
+  arvore_ligada = digitalRead(IN_ARVORE_LIGADA);  
+  rpg_ligado = digitalRead(IN_RPG_LIGADO);  
+  will_ligado = digitalRead(IN_WILL_LIGADO);  
+  armadilha_ligada = digitalRead(IN_ARMADILHA_LIGADA);  
+
+  arvore_ok = digitalRead(IN_ARVORE_OK);
+  rpg_ok = digitalRead(IN_RPG_OK);
+  will_ok = digitalRead(IN_WILL_OK);
+  armadilha_ok = digitalRead(IN_ARMADILHA_OK);
+
+  arvore_resolvida = false;  
+  digitalWrite(RELE_LIGA_TV, LOW);
+  rpg_resolvido = false;  
+  digitalWrite(RELE_PORTA_ARMADILHA, LOW);
+  will_resolvido = false;  
+  digitalWrite(RELE_PORTA_ARMARIO, LOW);
+  armadilha_resolvida = false;  
+  digitalWrite(RELE_PORTA_PRINCIPAL, LOW);
+
 }
 
 void desliga_tomada_tv() {
   Serial.println("Desliga tomada da TV");
-  tomada_tv = false;
-  digitalWrite(OUTPUT_TOMADA_TV, LOW);
+  arvore_resolvida = false;
+  digitalWrite(RELE_LIGA_TV, LOW);
 }
 
 void liga_tomada_tv() {
   Serial.println("Liga tomada da TV");
-  tomada_tv = true;
-  digitalWrite(OUTPUT_TOMADA_TV, HIGH);
+  arvore_resolvida = true;
+  digitalWrite(RELE_LIGA_TV, HIGH);
 }
 
+/*
 void reset_rpg() {
   Serial.println("Reseta o RPG");
   digitalWrite(LED_RPG_OK, LOW);
   digitalWrite(OUTPUT_RESET_RPG, HIGH);
 }
+*/
 
 void trava_porta_armadilha() {
   Serial.println("Trava porta da armadilha");
-  porta_armadilha = true;
-  digitalWrite(OUTPUT_TRAVA_ARMADILHA, HIGH);
+  rpg_resolvido = false;
+  digitalWrite(RELE_PORTA_ARMADILHA, LOW);
 }
 
 void destrava_porta_armadilha() {
   Serial.println("Destrava porta da armadilha");
-  porta_armadilha = false;
-  digitalWrite(OUTPUT_TRAVA_ARMADILHA, LOW);
+  rpg_resolvido = true;
+  digitalWrite(RELE_PORTA_ARMADILHA, HIGH);
 }
 
 void trava_porta_armario() {
   Serial.println("Trava porta do armário");
-  porta_armario = true;
-  digitalWrite(OUTPUT_TRAVA_ARMARIO, HIGH);
+  will_resolvido = false;
+  digitalWrite(RELE_PORTA_ARMARIO, LOW);
 }
 
 void destrava_porta_armario() {
   Serial.println("Destrava porta do armário");
-  porta_armario = false;
-  digitalWrite(OUTPUT_TRAVA_ARMARIO, LOW);
+  will_resolvido = true;
+  digitalWrite(RELE_PORTA_ARMARIO, HIGH);
 }
 
 void trava_porta_principal() {
   Serial.println("Trava porta principal");
-  porta_principal = true;
-  digitalWrite(OUTPUT_TRAVA_PRINCIPAL, HIGH);
+  armadilha_resolvida = false;
+  digitalWrite(RELE_PORTA_PRINCIPAL, LOW);
 }
 
 void destrava_porta_principal() {
   Serial.println("Destrava porta principal");
-  porta_principal = false;
-  digitalWrite(OUTPUT_TRAVA_PRINCIPAL, LOW);
+  armadilha_resolvida = true;
+  digitalWrite(RELE_PORTA_PRINCIPAL, HIGH);
 }
 
+void estagio_arvore() {
+  Serial.println("Estágio ARVORE");
+  desliga_tomada_tv();
+  trava_porta_armadilha();
+  trava_porta_armario();
+  trava_porta_principal();
+}
+
+void estagio_rpg() {
+  Serial.println("Estágio RPG");
+  liga_tomada_tv();
+  trava_porta_armadilha();
+  trava_porta_armario();
+  trava_porta_principal();
+}
+
+void estagio_will() {
+  Serial.println("Estágio WILL");
+  liga_tomada_tv();
+  destrava_porta_armadilha();
+  trava_porta_armario();
+  trava_porta_principal();
+}
+
+void estagio_armadilha() {
+  Serial.println("Estágio ARMADILHA");
+  liga_tomada_tv();
+  destrava_porta_armadilha();
+  destrava_porta_armario();
+  trava_porta_principal();
+}
+
+void estagio_final() {  
+  desliga_tomada_tv();
+  destrava_porta_armadilha();
+  destrava_porta_armario();
+  destrava_porta_principal();
+}
+
+void test_game() {
+  digitalWrite(LED_ARVORE_OK, HIGH); delay(500);
+  digitalWrite(LED_ARVORE_OK, LOW); delay(500);
+  digitalWrite(LED_RPG_OK, HIGH); delay(500);
+  digitalWrite(LED_RPG_OK, LOW); delay(500);
+  digitalWrite(LED_WILL_OK, HIGH); delay(500);
+  digitalWrite(LED_WILL_OK, LOW); delay(500);
+  digitalWrite(LED_ARMADILHA_OK, HIGH); delay(500);
+  digitalWrite(LED_ARMADILHA_OK, LOW); delay(500);
+  delay(2000);
+  liga_tomada_tv(); delay(500);
+  trava_porta_armadilha(); delay(500);
+  trava_porta_armario(); delay(500);
+  trava_porta_principal(); delay(500);
+  delay(2000);
+  desliga_tomada_tv(); delay(500);
+  destrava_porta_armadilha(); delay(500);
+  destrava_porta_armario(); delay(500);
+  destrava_porta_principal(); delay(500);
+  delay(2000);
+  reset_game();
+}
+
+boolean old_arvore_ok = false;
+boolean old_rpg_ok = false;
+boolean old_will_ok = false;
+boolean old_armadilha_ok = false;
+
+boolean old_arvore_ligada = false;
+boolean old_rpg_ligado = false;
+boolean old_will_ligado = false;
+boolean old_armadilha_ligada = false;
+
 boolean atualiza_status() {
+
   // save old status
-  old_arvore_genealogica_ok = arvore_genealogica_ok;
+  old_arvore_ligada = arvore_ligada;
+  old_rpg_ligado = rpg_ligado;
+  old_will_ligado = will_ligado;
+  old_armadilha_ligada = armadilha_ligada;
+
+  old_arvore_ok = arvore_ok;
   old_rpg_ok = rpg_ok;
-  old_sensor_porta_armadilha = sensor_porta_armadilha;
-  old_sensor_porta_armario = sensor_porta_armario;
-  old_sensor_will_ok = sensor_will_ok;
-  old_bombas_ok = bombas_ok;
+  old_will_ok = will_ok;
+  old_armadilha_ok = armadilha_ok;
 
   // read new status; signals that are true when LOW are inverted on read to simplify logic
-  arvore_genealogica_ok = !digitalRead(INPUT_ARVORE_GENEALOGICA_OK);
-  rpg_ok = !digitalRead(INPUT_RPG_OK);
-  sensor_porta_armadilha = !digitalRead(INPUT_PORTA_ARMADILHA);
-  sensor_porta_armario = !digitalRead(INPUT_PORTA_ARMARIO);
-  sensor_will_ok = !digitalRead(INPUT_SENSOR_WILL_OK);
-  bombas_ok = !digitalRead(INPUT_BOMBAS_OK);   
+  arvore_ligada = digitalRead(IN_ARVORE_LIGADA);  
+  rpg_ligado = digitalRead(IN_RPG_LIGADO);  
+  will_ligado = digitalRead(IN_WILL_LIGADO);  
+  armadilha_ligada = digitalRead(IN_ARMADILHA_LIGADA);  
+
+  if (arvore_ligada) { arvore_ok = !digitalRead(IN_ARVORE_OK); } else { arvore_ok = false; }
+  if (rpg_ligado) { rpg_ok = !digitalRead(IN_RPG_OK); } else { rpg_ok = false; }
+  if (will_ligado) { will_ok = !digitalRead(IN_WILL_OK); } else { will_ok = false; }
+  if (armadilha_ligada) { armadilha_ok = !digitalRead(IN_ARMADILHA_OK); } else { armadilha_ok = false; }
 
   // returns true if anything changed
   return (
-    (arvore_genealogica_ok != old_arvore_genealogica_ok) ||
-    (rpg_ok != old_rpg_ok) ||
-    (sensor_porta_armadilha != old_sensor_porta_armadilha) ||
-    (sensor_porta_armario != old_sensor_porta_armario) ||
-    (sensor_will_ok != old_sensor_will_ok) ||
-    (bombas_ok != old_bombas_ok)
+    (old_arvore_ok != arvore_ok) ||
+    (old_rpg_ok != rpg_ok) ||
+    (old_will_ok != will_ok) ||
+    (old_armadilha_ok != armadilha_ok) 
     );
 }
 
 void imprime_status() {
   Serial.println();
   Serial.print("STATUS ("); Serial.print(long(millis()/1000)); Serial.println(")");
-  Serial.print("Árvore: "); Serial.println(arvore_genealogica_ok);
-  Serial.print("RPG: "); Serial.println(rpg_ok);
-  Serial.print("Porta armadilha: "); Serial.println(sensor_porta_armadilha);
-  Serial.print("Porta armário: "); Serial.println(sensor_porta_armario);
-  Serial.print("Will: "); Serial.println(sensor_will_ok);
-  Serial.print("Bombas: "); Serial.println(bombas_ok);  
+
+  Serial.print("Árvore: ");
+  Serial.print(arvore_ligada ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" "); 
+  Serial.print(arvore_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" "); 
+  Serial.println(arvore_resolvida ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
+
+  Serial.print("RPG: ");
+  Serial.print(rpg_ligado ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" "); 
+  Serial.print(rpg_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" "); 
+  Serial.println(rpg_resolvido ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
+
+  Serial.print("Will: ");
+  Serial.print(will_ligado ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" "); 
+  Serial.print(will_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" "); 
+  Serial.println(will_resolvido ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
+
+  Serial.print("Armadilha: ");
+  Serial.print(armadilha_ligada ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" "); 
+  Serial.print(armadilha_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" "); 
+  Serial.println(armadilha_resolvida ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 }
 
 void setup() {
@@ -442,19 +293,16 @@ void loop() {
   }
 
   // ARVORE GENEALOGICA
-  if (arvore_genealogica_ok != old_arvore_genealogica_ok) {
-    if (arvore_genealogica_ok) {
+  if (arvore_ok != old_arvore_ok) {
+    if (arvore_ok) {
       Serial.println("Árvore OK");
-      tomada_tv = false;  
-      digitalWrite(OUTPUT_QUADRO_OK, LOW);
+      digitalWrite(LED_ARVORE_OK, HIGH);
+      Serial.println("Árvore RESOLVIDA");
+      estagio_rpg();
     }
     else {
       Serial.println("Árvore NÃO OK");
-      /*
-       * depois que ligou, não desliga mais
-      tomada_tv = false;  
-      digitalWrite(OUTPUT_QUADRO_OK, false);
-      */
+      digitalWrite(LED_ARVORE_OK, LOW);
     }
   }
 
@@ -463,40 +311,38 @@ void loop() {
     if (rpg_ok) {
       Serial.println("RPG OK");
       digitalWrite(LED_RPG_OK, HIGH);
-      porta_armadilha = false;
-      digitalWrite(OUTPUT_RPG_OK, HIGH);
+      Serial.println("RPG RESOLVIDO");
+      estagio_will();
     }
     else {
       Serial.println("RPG NÃO OK");
       digitalWrite(LED_RPG_OK, LOW);
-      /*
-      porta_armadilha = true;  
-      digitalWrite(OUTPUT_RPG_OK, false);
-      */
     }
   }
 
-  if (sensor_will_ok != old_sensor_will_ok) {
-    if (sensor_will_ok) {
+  if (will_ok != old_will_ok) {
+    if (will_ok) {
       Serial.println("Will OK");
-      // desliga o relé pra abrir a porta do armário
-      digitalWrite(OUTPUT_WILL_OK, LOW);
+      digitalWrite(LED_WILL_OK, HIGH);
+      Serial.println("Will RESOLVIDO");
+      estagio_armadilha();
     }
-    else {/*
+    else {
       Serial.println("Will NÃO OK");
-      // liga o relé pra trancar a porta do armário
-      digitalWrite(OUTPUT_WILL_OK, HIGH);
-      */
+      digitalWrite(LED_WILL_OK, LOW);
     }
   }
 
-  if (bombas_ok != old_bombas_ok) {
-    bombas_ok = !digitalRead(INPUT_BOMBAS_OK);
-    if (bombas_ok) {
-      Serial.println("Bombas OK");
-      // desliga o relé pra abrir a porta do principal, apaga as luzes
-      porta_principal = false;
-      digitalWrite(OUTPUT_PORTA_PRINCIPAL, LOW);
+  if (armadilha_ok != old_armadilha_ok) {
+    if (armadilha_ok) {
+      Serial.println("Armadilha OK");
+      digitalWrite(LED_ARMADILHA_OK, HIGH);
+      Serial.println("Will RESOLVIDO");
+      estagio_final();
+    }
+    else {
+      Serial.println("Armadilha OK");
+      digitalWrite(LED_ARMADILHA_OK, LOW);
     }
   }
 
@@ -510,6 +356,12 @@ void loop() {
       else if (input.equalsIgnoreCase("RESTART")) {
         Serial.println("Travando porta principal"); 
         reset_game();
+      }
+      else if (input.equalsIgnoreCase("LIGA TV")) {
+        liga_tomada_tv();
+      }
+      else if (input.equalsIgnoreCase("DESLIGA TV")) {
+        desliga_tomada_tv();
       }
       else if (input.equalsIgnoreCase("ABRIR SALA")) {
         destrava_porta_principal();
@@ -529,9 +381,9 @@ void loop() {
       else if (input.equalsIgnoreCase("FECHAR ARMARIO")) {
         trava_porta_armario();
       }
-      else if (input.equalsIgnoreCase("RESET RPG")) {
-         Serial.println("RPG_OK"); 
-         digitalWrite(LED_RPG_OK, HIGH);
+      else if (input.equalsIgnoreCase("TEST")) {
+         Serial.println("TEST"); 
+         test_game();
       }
       else {
         Serial.print("Comando não reconhecido: <");
