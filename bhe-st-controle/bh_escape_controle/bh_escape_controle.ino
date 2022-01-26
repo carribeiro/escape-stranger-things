@@ -20,9 +20,10 @@
 #define RELE_PORTA_ARMADILHA   (A1)
 #define RELE_PORTA_ARMARIO     (A2)
 #define RELE_PORTA_PRINCIPAL   (A3)
+
 #define IN_RESTART_ARVORE      (A4)
 #define IN_RESTART_RPG         (A5)
-#define IN_RESTART_WILL        (A5)
+#define IN_RESTART_WILL        (A6)
 #define IN_RESTART_ARMADILHA   (A7)
 
 boolean arvore_ligada = false;
@@ -214,6 +215,11 @@ boolean old_rpg_ligado = false;
 boolean old_will_ligado = false;
 boolean old_armadilha_ligada = false;
 
+boolean arvore_restart_pressed = false;
+boolean rpg_restart_pressed = false;
+boolean will_restart_pressed = false;
+boolean armadilha_restart_pressed = false;
+
 boolean atualiza_status() {
 
   // save old status
@@ -346,8 +352,68 @@ void loop() {
     }
   }
 
+  if (digitalRead(IN_RESTART_ARVORE) == LOW) {
+    // algoritmo simples de debounce
+    delay(50);
+    if (digitalRead(IN_RESTART_ARVORE) == LOW) {
+      Serial.println();
+      Serial.println("RESTART ARVORE PRESSIONADO");
+      arvore_restart_pressed = true;
+    }
+  }
+  if (arvore_restart_pressed && (digitalRead(IN_RESTART_ARVORE) == HIGH)) {
+    // algoritmo simples de debounce
+    delay(50);
+    if (digitalRead(IN_RESTART_ARVORE) == HIGH) {
+      Serial.println("RESTART ARVORE SOLTO");
+      arvore_restart_pressed = false;
+      estagio_arvore();
+    }
+  }
+
+  if (digitalRead(IN_RESTART_RPG) == LOW) {
+    // algoritmo simples de debounce
+    delay(50);
+    if (digitalRead(IN_RESTART_RPG) == LOW) {
+      estagio_rpg();
+    }
+  }
+
+  // arvore_restart_pressed = false;
+  // rpg_restart_pressed = false;
+  // will_restart_pressed = false;
+  // armadilha_restart_pressed = false;
+
+  // Serial.println(analogRead(IN_RESTART_WILL));
+  if (analogRead(IN_RESTART_WILL) < 500) {
+    // algoritmo simples de debounce
+    delay(50);
+    if (analogRead(IN_RESTART_WILL) < 500) {
+      Serial.println();
+      Serial.println("RESTART WILL PRESSIONADO");
+      will_restart_pressed = true;
+    }
+  }
+  if (will_restart_pressed && (analogRead(IN_RESTART_WILL) >= 500)) {
+    // algoritmo simples de debounce
+    delay(50);
+    if (analogRead(IN_RESTART_WILL) >= 500) {
+      Serial.println("RESTART WILL SOLTO");
+      will_restart_pressed = false;
+      estagio_will();
+    }
+  }
+/*
+  if (digitalRead(IN_RESTART_ARMADILHA) == LOW) {
+    // algoritmo simples de debounce
+    delay(50);
+    if (digitalRead(IN_RESTART_ARMADILHA) == LOW) {
+      estagio_armadilha();
+    }
+  }
+*/
   String input;
-  if(Serial.available()) {
+  if (Serial.available()) {
       input = Serial.readStringUntil('\n');
       input.trim();
       if (input.equalsIgnoreCase("STATUS")) {
@@ -380,6 +446,15 @@ void loop() {
       }
       else if (input.equalsIgnoreCase("FECHAR ARMARIO")) {
         trava_porta_armario();
+      }
+      else if (input.equalsIgnoreCase("A6")) {
+         Serial.println("Pino A6: ");
+         for (int i = 0; i<30; i++) {
+           Serial.print(analogRead(A6));
+           Serial.print(", ");
+           delay(100);
+         }
+         Serial.println();
       }
       else if (input.equalsIgnoreCase("TEST")) {
          Serial.println("TEST"); 
