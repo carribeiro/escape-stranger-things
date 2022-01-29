@@ -7,68 +7,26 @@
 
 FUNCIONAMENTO
 
-Armadilha
----------
+1) Conexão com a CAIXA DE CONTROLE
 
-CHAVE_LIGA_ARMADILHA: Chave que liga o circuito de alimentação da Armadilha
-(controle das bombas). Envia 127 VDC para a caixa das bombas, que tem 
-alimentação própria com fonte de 12 VDC embutida.
+Cabo manga 4 vias.
 
-  Observações:
-  - não oferece riscos de segurança tão grandes, pois a caixa é fechada e 
-    fica na parede (não tem cabo debaixo do tapete).
+- Vermelho: VCC
+- Marrom: GND
+- Amarelo: RESET (não implementado)
+- Laranja: OK (bombas armadas)
 
-LED_BASES_LIGADAS: Led alimentado diretamente pela CHAVE_LIGA_RPG (chave 
-dupla com circuito secundário de 12 VDC). 
+2) Conexão BOMBA_01 a BOMBA_03
 
-  - Resistor de 470 ohms (12 VDC).
+- Vermelho: VCC
+- Marrom: GND
+- Amarelo: BOMBA PRESENTE
+- Laranja: BOMBA ARMADA
 
-INPUT_BOMBAS_OK: Pino de entrada com pullup, serve para receber o sinal das 
-bombas. Quando o pino fica LOW indica que as bombas estão todas armadas.
+3) Sensor da porta da armadilha
 
-  Observações:
-  - Configuração do pino: INPUT_PULLUP
-  - Ver observação sobre pino de controle da mesa de RPG (mesmo esquema).
-
-INPUT_PORTA_ARMADILHA: Pino de entrada com pullup, serve para receber o 
-sinal da porta da armadilha, indicando que está fechada. Quando o pino fica
-LOW indica que a porta está fechada; HIGH indica porta aberta.
-
-  Observações:
-  - Configuração do pino: INPUT_PULLUP
-  - Mesmo esquema do quadro da Árvore Genealógica (reed switch direto).
-
-BOTAO_BYPASS_ARMADILHA: Botão de pulso, montado em paralelo com o sinal de 
-entrada da INPUT_BOMBAS_OK e INPUT_PORTA_ARMADILHA. Quando pressionado, 
-libera a armadilha como se estivesse solucionada (aterra os dois sinais).
-
---> importante: todos os sinais de controle precisam de um resistor de 
-proteção que fica nos módulos remotos (RPG ou Armadilha), dimensionado entre
-270 ohms e 470 ohms. Isso evita que um sinal de saída em HIGH (que não 
-deveria acontecer, mas pode por conta de algum bug) não gere um curto com os
-botões de bypass que jogam o sinal para o terra diretamente.
-
-LED_BOMBAS_ATIVAS: Led que fica aceso quando todas as bombas forem ativadas.
-Por segurança, será alimentado pelo microcontrolador.
-
-  - Configuração do pino: OUTPUT
-  - Resistor de 150 ohms (5 VDC).
-
-LED_PORTA_FECHADA: Led que fica aceso quando a porta estiver fechada. O 
-sensor reed fecha e permite o acendimento direto do LED (não passa pelo 
-microcontrolador).
-
-  - Resistor de 150 ohms (5 VDC).
-
-OUTPUT_ARMADILHA_OK: Sinal de controle que indica explosão da bomba. Efeito
-temporizado, alimenta um relé. Temporizado (tempo de efeito a decidir).
-
-  - Configuração do pino: OUTPUT
-  - Conectado ao relé 03 do banco de relés
-  - Sinal de controle de 12 VDC.
-
-LED_EXPLOSÃO_BOMBA: Led acionado pelo relé 03 (ativado pelo sinal 
-OUTPUT_ARMADILHA_OK).
+- Sensor Hall
+- GND
 
 ****************************************************************************/
 
@@ -82,19 +40,16 @@ OUTPUT_ARMADILHA_OK).
 #define INPUT_BOMBA_02_SET (6)
 #define INPUT_BOMBA_03_SET (7)
 
-#define INPUT_SENSOR_PORTA_ARMADILHA (8)
+#define INPUT_PORTA_ARMADILHA (8)
 
 #define OUTPUT_BOMBAS_LIGADAS (9)
 #define OUTPUT_BOMBAS_OK (10)  
-#define OUTPUT_SENSOR_PORTA_ARMADILHA (11)
+#define OUTPUT_PORTA_ARMADILHA (11)
 
 // OUTPUT_BOMBAS_OK --> vermelho
 // GROUND --> marrom
-// OUTPUT_SENSOR_PORTA_ARMADILHA --> laranja
+// OUTPUT_PORTA_ARMADILHA --> laranja
 // OUTPUT_BOMBAS_LIGADAS --> amarelo
-
-boolean porta_armadilha = true;
-boolean bombas_ok = false;
 
 void reset_game() {
 
@@ -102,19 +57,18 @@ void reset_game() {
   pinMode(INPUT_BOMBA_01_ON, INPUT_PULLUP);
   pinMode(INPUT_BOMBA_02_ON, INPUT_PULLUP);
   pinMode(INPUT_BOMBA_03_ON, INPUT_PULLUP);
-  pinMode(INPUT_BOMBA_01_SET, INPUT_PULLUP);
-  pinMode(INPUT_BOMBA_02_SET, INPUT_PULLUP);
-  pinMode(INPUT_BOMBA_03_SET, INPUT_PULLUP);
-  pinMode(INPUT_SENSOR_PORTA_ARMADILHA, INPUT);
+  pinMode(INPUT_BOMBA_01_SET, INPUT);
+  pinMode(INPUT_BOMBA_02_SET, INPUT);
+  pinMode(INPUT_BOMBA_03_SET, INPUT);
+  pinMode(INPUT_PORTA_ARMADILHA, INPUT);
   pinMode(OUTPUT_BOMBAS_LIGADAS, OUTPUT);
   pinMode(OUTPUT_BOMBAS_OK, OUTPUT);
-  pinMode(OUTPUT_SENSOR_PORTA_ARMADILHA, OUTPUT);
-  pinMode(INPUT_SENSOR_PORTA_ARMADILHA, INPUT);
+  pinMode(OUTPUT_PORTA_ARMADILHA, OUTPUT);
 
-  // limpa sinais enviados para a caixa  
+  // limpa sinais enviados para a caixa central
   digitalWrite(OUTPUT_BOMBAS_LIGADAS, HIGH);
   digitalWrite(OUTPUT_BOMBAS_OK, HIGH);
-  digitalWrite(OUTPUT_SENSOR_PORTA_ARMADILHA, HIGH);
+  digitalWrite(OUTPUT_PORTA_ARMADILHA, HIGH);
 }
 
 void setup() {
@@ -123,30 +77,111 @@ void setup() {
   reset_game();
 }
 
+boolean readBomba(int bomba) {
+  // referência: https://www.pololu.com/product/2455
+  
+  // Set the I/O line to an output and drive it high.
+  pinMode(bomba, OUTPUT);
+  digitalWrite(bomba, HIGH);
+  
+  // Allow at least 10 us for the sensor output to rise.
+  delayMicroseconds(20);
+  
+  // Make the I/O line an input (high impedance).
+  pinMode(bomba, INPUT);
+  
+  // Measure the time for the voltage to decay by waiting for the I/O line to go low.
+  Serial.print("Bomba ");
+  Serial.print(bomba);
+  Serial.print(": ");
+  for (int i = 0; i < 20; i++) {
+    boolean b = digitalRead(bomba);
+    // Serial.print(b);
+    delay(10);
+    if (b == 0) {
+      Serial.println(i);
+      return (i < 5);
+    }
+  }
+  Serial.println("");
+  return false;
+}
+
+boolean bomba_01_on = false;
+boolean bomba_02_on = false;
+boolean bomba_03_on = false;
+boolean bomba_01_set = false;
+boolean bomba_02_set = false;
+boolean bomba_03_set = false;
+
+boolean old_bomba_01_on = false;
+boolean old_bomba_02_on = false;
+boolean old_bomba_03_on = false;
+boolean old_bomba_01_set = false;
+boolean old_bomba_02_set = false;
+boolean old_bomba_03_set = false;
+
+boolean porta_armadilha = false;
+boolean old_porta_armadilha = false;
+
+boolean status_changed = false;
+
 void loop() {
 
-  Serial.print(" ON-01:"); Serial.print(digitalRead(INPUT_BOMBA_01_ON)); Serial.print(" "); 
-  Serial.print(" ON-02:"); Serial.print(digitalRead(INPUT_BOMBA_02_ON)); Serial.print(" "); 
-  Serial.print(" ON-03:"); Serial.print(digitalRead(INPUT_BOMBA_03_ON)); Serial.print(" "); 
-  Serial.println();
-  Serial.print("SET-01:"); Serial.print(digitalRead(INPUT_BOMBA_01_SET)); Serial.print(" "); 
-  Serial.print("SET-02:"); Serial.print(digitalRead(INPUT_BOMBA_02_SET)); Serial.print(" "); 
-  Serial.print("SET-03:"); Serial.print(digitalRead(INPUT_BOMBA_03_SET)); Serial.print(" "); 
-  Serial.println();
-  boolean bombas_ligadas = 
-    !digitalRead(INPUT_BOMBA_01_ON) && 
-    !digitalRead(INPUT_BOMBA_02_ON) && 
-    !digitalRead(INPUT_BOMBA_03_ON);
-  boolean bombas_armadas = 
-    !digitalRead(INPUT_BOMBA_01_SET) && 
-    !digitalRead(INPUT_BOMBA_02_SET) && 
-    !digitalRead(INPUT_BOMBA_03_SET);
+  // salva status antigo das bombas
+  old_bomba_01_on = bomba_01_on;
+  old_bomba_02_on = bomba_02_on;
+  old_bomba_03_on = bomba_03_on;
+  
+  old_bomba_01_set = bomba_01_set;
+  old_bomba_02_set = bomba_02_set;
+  old_bomba_03_set = bomba_03_set;
 
-  if (bombas_ligadas) {
-    digitalWrite(OUTPUT_BOMBAS_LIGADAS, LOW);
-  }
-  if (bombas_armadas) {
-    digitalWrite(OUTPUT_BOMBAS_OK, LOW);
+  old_porta_armadilha = porta_armadilha;
+
+  // carrega status atual das bombas
+  bomba_01_on = digitalRead(INPUT_BOMBA_01_ON);
+  bomba_02_on = digitalRead(INPUT_BOMBA_02_ON);
+  bomba_03_on = digitalRead(INPUT_BOMBA_03_ON);
+
+  bomba_01_set = readBomba(INPUT_BOMBA_01_SET);
+  bomba_02_set = readBomba(INPUT_BOMBA_02_SET);
+  bomba_03_set = readBomba(INPUT_BOMBA_03_SET);
+
+  porta_armadilha = digitalRead(INPUT_PORTA_ARMADILHA);
+  
+  status_changed = (
+    (old_bomba_01_on != bomba_01_on) ||
+    (old_bomba_02_on != bomba_02_on) ||
+    (old_bomba_03_on != bomba_03_on) ||    
+    (old_bomba_01_set != bomba_01_set) ||
+    (old_bomba_02_set != bomba_02_set) ||
+    (old_bomba_03_set != bomba_03_set) ||
+    (old_porta_armadilha = porta_armadilha)
+    );
+
+  if (status_changed) {
+    Serial.print("BOMBA 01:"); Serial.print(bomba_01_on ? "ON" : "OFF"); Serial.print(","); Serial.print(bomba_01_set ? "ARMADA" : "DESARMADA"); Serial.print("  ");
+    Serial.print("BOMBA 02:"); Serial.print(bomba_02_on ? "ON" : "OFF"); Serial.print(","); Serial.print(bomba_02_set ? "ARMADA" : "DESARMADA"); Serial.print("  ");
+    Serial.print("BOMBA 03:"); Serial.print(bomba_03_on ? "ON" : "OFF"); Serial.print(","); Serial.print(bomba_03_set ? "ARMADA" : "DESARMADA"); Serial.print("  ");
+    Serial.print(porta_armadilha ? "PORTA FECHADA" : "PORTA ABERTA");
+    Serial.println();
+    
+    boolean bombas_ligadas = 
+      !digitalRead(INPUT_BOMBA_01_ON) && 
+      !digitalRead(INPUT_BOMBA_02_ON) && 
+      !digitalRead(INPUT_BOMBA_03_ON);
+    boolean bombas_armadas = 
+      readBomba(INPUT_BOMBA_01_SET) && 
+      readBomba(INPUT_BOMBA_02_SET) && 
+      readBomba(INPUT_BOMBA_03_SET);
+  
+    if (bombas_ligadas) {
+      digitalWrite(OUTPUT_BOMBAS_LIGADAS, LOW);
+    }
+    if (bombas_armadas) {
+      digitalWrite(OUTPUT_BOMBAS_OK, LOW);
+    }
   }
   delay(500);
 
