@@ -31,7 +31,7 @@ Cabo manga 4 vias.
 ****************************************************************************/
 
 
-#define DEBUG_OPTO (true)
+#define DEBUG_OPTO (false)
 
 // pins
 
@@ -99,17 +99,17 @@ boolean readBomba(int bomba) {
     Serial.print(bomba);
     Serial.print(": ");
   }
-  for (int i = 0; i < 50; i++) {
+  for (int i = 0; i < 20; i++) {
     boolean b = digitalRead(bomba);
     if (DEBUG_OPTO) {
       //Serial.print(b);
     }
-    delay(20);
+    delay(5);
     if (b == 0) {
       if (DEBUG_OPTO) {
         Serial.println(i);
       }
-      return (i < 5);
+      return (i < 10);
     }
   }
   if (DEBUG_OPTO) {
@@ -134,6 +134,12 @@ boolean old_bomba_03_set = false;
 
 boolean porta_armadilha = false;
 boolean old_porta_armadilha = false;
+
+boolean bombas_ligadas = false;
+boolean old_bombas_ligadas = false;
+
+boolean bombas_armadas = false;
+boolean old_bombas_armadas = false;
 
 boolean status_changed = false;
 
@@ -178,8 +184,10 @@ void loop() {
     Serial.print(porta_armadilha ? "PORTA FECHADA" : "PORTA ABERTA");
     Serial.println();
     
-    boolean bombas_ligadas = bomba_01_on && bomba_02_on && bomba_03_on;
-    boolean bombas_armadas = bomba_01_set && bomba_02_set && bomba_03_set;
+    old_bombas_ligadas = bombas_ligadas;
+    old_bombas_armadas = bombas_armadas;
+    bombas_ligadas = bomba_01_on && bomba_02_on && bomba_03_on;
+    bombas_armadas = bomba_01_set && bomba_02_set && bomba_03_set;
   
     if (bombas_ligadas) {
       digitalWrite(OUTPUT_BOMBAS_LIGADAS, LOW);
@@ -187,6 +195,17 @@ void loop() {
     if (bombas_armadas) {
       digitalWrite(OUTPUT_BOMBAS_OK, LOW);
     }
+    digitalWrite(OUTPUT_PORTA_ARMADILHA, porta_armadilha);
+
+    if ((old_bombas_armadas != bombas_armadas) || (old_porta_armadilha != porta_armadilha)) {
+       if (bombas_armadas && porta_armadilha) {
+         Serial.println("ARMADILHA ARMADA");
+       }
+       else {
+         Serial.println("ARMADILHA DESARMADA");
+       }
+    }
+
   }
   delay(150);
 

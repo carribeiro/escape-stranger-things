@@ -6,7 +6,7 @@
 
 #define IN_ARVORE_LIGADA       (2)
 #define IN_ARVORE_OK           (3)
-#define LED_ARVORE_OK          (4)
+// #define LED_ARVORE_OK          (4)
 #define IN_RPG_LIGADO          (5)
 #define IN_RPG_OK              (6)
 #define LED_RPG_OK             (7)
@@ -15,6 +15,7 @@
 #define LED_WILL_OK            (10)
 #define IN_ARMADILHA_LIGADA    (11)
 #define IN_ARMADILHA_OK        (12)
+#define IN_ARMADILHA_PORTA     (4)
 #define LED_ARMADILHA_OK       (13)
 #define RELE_LIGA_TV           (A0)
 #define RELE_PORTA_ARMADILHA   (A1)
@@ -35,6 +36,7 @@ boolean arvore_ok = false;
 boolean rpg_ok = false;
 boolean will_ok = false;
 boolean armadilha_ok = false;
+boolean armadilha_porta = false;
 
 boolean arvore_resolvida = false;
 boolean rpg_resolvido = false;
@@ -46,7 +48,7 @@ void reset_game() {
   // configura pinos
   pinMode(IN_ARVORE_LIGADA, INPUT); // pulldown?
   pinMode(IN_ARVORE_OK, INPUT_PULLUP);
-  pinMode(LED_ARVORE_OK, OUTPUT);
+  //pinMode(LED_ARVORE_OK, OUTPUT);
   pinMode(IN_RPG_LIGADO, INPUT);
   pinMode(IN_RPG_OK, INPUT_PULLUP);
   pinMode(LED_RPG_OK, OUTPUT);
@@ -55,6 +57,7 @@ void reset_game() {
   pinMode(LED_WILL_OK, OUTPUT);
   pinMode(IN_ARMADILHA_LIGADA, INPUT);
   pinMode(IN_ARMADILHA_OK, INPUT_PULLUP);
+  pinMode(IN_ARMADILHA_PORTA, INPUT_PULLUP);
   pinMode(LED_ARMADILHA_OK, OUTPUT);
   pinMode(RELE_LIGA_TV, OUTPUT);
   pinMode(RELE_PORTA_ARMADILHA, OUTPUT);
@@ -71,10 +74,11 @@ void reset_game() {
   will_ligado = digitalRead(IN_WILL_LIGADO);  
   armadilha_ligada = digitalRead(IN_ARMADILHA_LIGADA);  
 
-  arvore_ok = digitalRead(IN_ARVORE_OK);
-  rpg_ok = digitalRead(IN_RPG_OK);
-  will_ok = digitalRead(IN_WILL_OK);
-  armadilha_ok = digitalRead(IN_ARMADILHA_OK);
+  arvore_ok = !digitalRead(IN_ARVORE_OK);
+  rpg_ok = !digitalRead(IN_RPG_OK);
+  will_ok = !digitalRead(IN_WILL_OK);
+  armadilha_ok = !digitalRead(IN_ARMADILHA_OK);
+  armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
 
   arvore_resolvida = false;  
   digitalWrite(RELE_LIGA_TV, LOW);
@@ -183,8 +187,8 @@ void estagio_final() {
 }
 
 void test_game() {
-  digitalWrite(LED_ARVORE_OK, HIGH); delay(500);
-  digitalWrite(LED_ARVORE_OK, LOW); delay(500);
+  // digitalWrite(LED_ARVORE_OK, HIGH); delay(500);
+  // digitalWrite(LED_ARVORE_OK, LOW); delay(500);
   digitalWrite(LED_RPG_OK, HIGH); delay(500);
   digitalWrite(LED_RPG_OK, LOW); delay(500);
   digitalWrite(LED_WILL_OK, HIGH); delay(500);
@@ -209,6 +213,7 @@ boolean old_arvore_ok = false;
 boolean old_rpg_ok = false;
 boolean old_will_ok = false;
 boolean old_armadilha_ok = false;
+boolean old_armadilha_porta = false;
 
 boolean old_arvore_ligada = false;
 boolean old_rpg_ligado = false;
@@ -232,6 +237,7 @@ boolean atualiza_status() {
   old_rpg_ok = rpg_ok;
   old_will_ok = will_ok;
   old_armadilha_ok = armadilha_ok;
+  old_armadilha_porta = armadilha_porta;
 
   // read new status; signals that are true when LOW are inverted on read to simplify logic
   arvore_ligada = digitalRead(IN_ARVORE_LIGADA);  
@@ -242,14 +248,22 @@ boolean atualiza_status() {
   if (arvore_ligada) { arvore_ok = !digitalRead(IN_ARVORE_OK); } else { arvore_ok = false; }
   if (rpg_ligado) { rpg_ok = !digitalRead(IN_RPG_OK); } else { rpg_ok = false; }
   if (will_ligado) { will_ok = !digitalRead(IN_WILL_OK); } else { will_ok = false; }
-  if (armadilha_ligada) { armadilha_ok = !digitalRead(IN_ARMADILHA_OK); } else { armadilha_ok = false; }
+  if (armadilha_ligada) { 
+    armadilha_ok = !digitalRead(IN_ARMADILHA_OK); 
+    armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
+  } 
+  else { 
+    armadilha_ok = false; 
+    armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
+  }
 
   // returns true if anything changed
   return (
     (old_arvore_ok != arvore_ok) ||
     (old_rpg_ok != rpg_ok) ||
     (old_will_ok != will_ok) ||
-    (old_armadilha_ok != armadilha_ok) 
+    (old_armadilha_ok != armadilha_ok) ||
+    (old_armadilha_porta != armadilha_porta) 
     );
 }
 
@@ -278,6 +292,8 @@ void imprime_status() {
   Serial.println(armadilha_resolvida ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 }
 
+boolean armadilha_blink = false;
+
 void setup() {
   Serial.begin(115200);
   Serial.println();
@@ -290,6 +306,18 @@ void setup() {
 
 void loop() {
   // Serial.println("LOOP");
+  // Serial.println(analogRead(IN_RESTART_WILL));
+
+  if (armadilha_blink) {
+    unsigned long blink_time;
+    blink_time = millis()/1000;
+    if ((blink_time % 2) == 0) {
+      digitalWrite(LED_ARMADILHA_OK, HIGH);   
+    }
+    else {
+      digitalWrite(LED_ARMADILHA_OK, LOW);   
+    }
+  }
 
   boolean status_changed;
 
@@ -302,13 +330,13 @@ void loop() {
   if (arvore_ok != old_arvore_ok) {
     if (arvore_ok) {
       Serial.println("Árvore OK");
-      digitalWrite(LED_ARVORE_OK, HIGH);
+      // digitalWrite(LED_ARVORE_OK, HIGH);
       Serial.println("Árvore RESOLVIDA");
       estagio_rpg();
     }
     else {
       Serial.println("Árvore NÃO OK");
-      digitalWrite(LED_ARVORE_OK, LOW);
+      // digitalWrite(LED_ARVORE_OK, LOW);
     }
   }
 
@@ -326,6 +354,7 @@ void loop() {
     }
   }
 
+  // WILL
   if (will_ok != old_will_ok) {
     if (will_ok) {
       Serial.println("Will OK");
@@ -339,16 +368,25 @@ void loop() {
     }
   }
 
-  if (armadilha_ok != old_armadilha_ok) {
+  // ARMADILHA
+  if ((armadilha_ok != old_armadilha_ok) || (armadilha_porta != old_armadilha_porta)) {
     if (armadilha_ok) {
-      Serial.println("Armadilha OK");
-      digitalWrite(LED_ARMADILHA_OK, HIGH);
-      Serial.println("Will RESOLVIDO");
-      estagio_final();
+      if (armadilha_porta) {
+        armadilha_blink = false;
+        Serial.println("Armadilha OK + Porta FECHADA");
+        digitalWrite(LED_ARMADILHA_OK, HIGH);
+        Serial.println("ARMADILHA RESOLVIDA");
+        estagio_final();
+      }
+      else {
+        Serial.println("Armadilha OK + Porta FECHADA");
+        armadilha_blink = true;
+      }
     }
     else {
-      Serial.println("Armadilha OK");
+      Serial.println("Armadilha NÃO OK");
       digitalWrite(LED_ARMADILHA_OK, LOW);
+      armadilha_blink = false;
     }
   }
 
@@ -379,39 +417,44 @@ void loop() {
     }
   }
 
-  // arvore_restart_pressed = false;
-  // rpg_restart_pressed = false;
-  // will_restart_pressed = false;
-  // armadilha_restart_pressed = false;
-
-  // Serial.println(analogRead(IN_RESTART_WILL));
-  if (analogRead(IN_RESTART_WILL) < 500) {
+  if (analogRead(IN_RESTART_WILL) < 120) {
     // algoritmo simples de debounce
     delay(50);
-    if (analogRead(IN_RESTART_WILL) < 500) {
+    if (analogRead(IN_RESTART_WILL) < 120) {
       Serial.println();
       Serial.println("RESTART WILL PRESSIONADO");
       will_restart_pressed = true;
     }
   }
-  if (will_restart_pressed && (analogRead(IN_RESTART_WILL) >= 500)) {
+  if (will_restart_pressed && (analogRead(IN_RESTART_WILL) >= 120)) {
     // algoritmo simples de debounce
     delay(50);
-    if (analogRead(IN_RESTART_WILL) >= 500) {
+    if (analogRead(IN_RESTART_WILL) >= 120) {
       Serial.println("RESTART WILL SOLTO");
       will_restart_pressed = false;
       estagio_will();
     }
   }
-/*
-  if (digitalRead(IN_RESTART_ARMADILHA) == LOW) {
+
+  if (analogRead(IN_RESTART_ARMADILHA) < 120) {
     // algoritmo simples de debounce
     delay(50);
-    if (digitalRead(IN_RESTART_ARMADILHA) == LOW) {
+    if (analogRead(IN_RESTART_ARMADILHA) < 120) {
+      Serial.println();
+      Serial.println("RESTART ARMADILHA PRESSIONADO");
+      armadilha_restart_pressed = true;
+    }
+  }
+  if (will_restart_pressed && (analogRead(IN_RESTART_ARMADILHA) >= 120)) {
+    // algoritmo simples de debounce
+    delay(50);
+    if (analogRead(IN_RESTART_ARMADILHA) >= 120) {
+      Serial.println("RESTART ARMADILHA SOLTO");
+      armadilha_restart_pressed = false;
       estagio_armadilha();
     }
   }
-*/
+
   String input;
   if (Serial.available()) {
       input = Serial.readStringUntil('\n');

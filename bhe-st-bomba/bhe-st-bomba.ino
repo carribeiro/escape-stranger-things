@@ -99,13 +99,14 @@ void setup() {
 
   // led bomba ativa
   pinMode(LED_BOMBA_ATIVA, OUTPUT);
- digitalWrite(LED_BOMBA_ATIVA, LOW);
+  digitalWrite(LED_BOMBA_ATIVA, LOW);
 
   // status da bomba
   status_bomba = BOMBA_STANDBY;
   seta_led_corpo_bomba(led_corpo_bomba.Color(  20,   10,   40));    // lilás fraco
   seta_led_base_bomba(led_base_bomba.Color(  20,   10,   40));      // lilás fraco
-  
+ 
+  Serial.begin(115200); 
 }
 
 void loop() {
@@ -120,19 +121,23 @@ void loop() {
     if (newState == LOW) {     // Yes, still low
       switch (status_bomba) {
         case BOMBA_STANDBY:
+          Serial.println("Estado STANDBY --> START"); 
           digitalWrite(LED_BOMBA_ATIVA, LOW);
           status_bomba = BOMBA_START;          
           break;
         case BOMBA_START:
+          Serial.println("Estado START --> ATIVA"); 
           digitalWrite(LED_BOMBA_ATIVA, LOW);
           status_bomba = BOMBA_ONLINE;
           break;
         case BOMBA_ONLINE:
-          digitalWrite(LED_BOMBA_ATIVA, LOW);
+          Serial.println("Estado ONLINE --> ATIVA"); 
+          digitalWrite(LED_BOMBA_ATIVA, HIGH);
           status_bomba = BOMBA_ARMADA;
           break;
         case BOMBA_ARMADA:
-          digitalWrite(LED_BOMBA_ATIVA, HIGH);
+          Serial.println("Estado ATIVA --> ONLINE"); 
+          digitalWrite(LED_BOMBA_ATIVA, LOW);
           status_bomba = BOMBA_ONLINE;
           status_animacao = 0;
           break;
