@@ -32,6 +32,7 @@
 #define BOMBA_ONLINE 2
 #define BOMBA_ARMADA 3
 #define BUZZER 8
+#define LED_BOMBA_ATIVA 9
 
 int status_bomba = BOMBA_STANDBY;
 int status_animacao = 0;
@@ -90,11 +91,15 @@ void setup() {
   led_corpo_bomba.clear();
   led_base_bomba.setBrightness(BRILHO_BASE_BOMBA_STANDBY);
 
-  //buzzer
-  pinMode(8,OUTPUT);
+  // buzzer
+  pinMode(BUZZER, OUTPUT);
 
   // botão
   pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  // led bomba ativa
+  pinMode(LED_BOMBA_ATIVA, OUTPUT);
+ digitalWrite(LED_BOMBA_ATIVA, LOW);
 
   // status da bomba
   status_bomba = BOMBA_STANDBY;
@@ -115,15 +120,19 @@ void loop() {
     if (newState == LOW) {     // Yes, still low
       switch (status_bomba) {
         case BOMBA_STANDBY:
+          digitalWrite(LED_BOMBA_ATIVA, LOW);
           status_bomba = BOMBA_START;          
           break;
         case BOMBA_START:
+          digitalWrite(LED_BOMBA_ATIVA, LOW);
           status_bomba = BOMBA_ONLINE;
           break;
         case BOMBA_ONLINE:
+          digitalWrite(LED_BOMBA_ATIVA, LOW);
           status_bomba = BOMBA_ARMADA;
           break;
         case BOMBA_ARMADA:
+          digitalWrite(LED_BOMBA_ATIVA, HIGH);
           status_bomba = BOMBA_ONLINE;
           status_animacao = 0;
           break;
