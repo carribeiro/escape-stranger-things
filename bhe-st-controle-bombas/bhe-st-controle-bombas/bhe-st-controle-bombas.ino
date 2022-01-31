@@ -30,15 +30,18 @@ Cabo manga 4 vias.
 
 ****************************************************************************/
 
+
+#define DEBUG_OPTO (true)
+
 // pins
 
-#define INPUT_BOMBA_01_ON (2)
-#define INPUT_BOMBA_02_ON (3)
-#define INPUT_BOMBA_03_ON (4)
+#define INPUT_BOMBA_01_ON (5)
+#define INPUT_BOMBA_02_ON (6)
+#define INPUT_BOMBA_03_ON (7)
 
-#define INPUT_BOMBA_01_SET (5)
-#define INPUT_BOMBA_02_SET (6)
-#define INPUT_BOMBA_03_SET (7)
+#define INPUT_BOMBA_01_SET (2)
+#define INPUT_BOMBA_02_SET (3)
+#define INPUT_BOMBA_03_SET (4)
 
 #define INPUT_PORTA_ARMADILHA (8)
 
@@ -60,7 +63,7 @@ void reset_game() {
   pinMode(INPUT_BOMBA_01_SET, INPUT);
   pinMode(INPUT_BOMBA_02_SET, INPUT);
   pinMode(INPUT_BOMBA_03_SET, INPUT);
-  pinMode(INPUT_PORTA_ARMADILHA, INPUT);
+  pinMode(INPUT_PORTA_ARMADILHA, INPUT_PULLUP);
   pinMode(OUTPUT_BOMBAS_LIGADAS, OUTPUT);
   pinMode(OUTPUT_BOMBAS_OK, OUTPUT);
   pinMode(OUTPUT_PORTA_ARMADILHA, OUTPUT);
@@ -91,19 +94,27 @@ boolean readBomba(int bomba) {
   pinMode(bomba, INPUT);
   
   // Measure the time for the voltage to decay by waiting for the I/O line to go low.
-  Serial.print("Bomba ");
-  Serial.print(bomba);
-  Serial.print(": ");
-  for (int i = 0; i < 20; i++) {
+  if (DEBUG_OPTO) {
+    Serial.print("Bomba ");
+    Serial.print(bomba);
+    Serial.print(": ");
+  }
+  for (int i = 0; i < 50; i++) {
     boolean b = digitalRead(bomba);
-    // Serial.print(b);
-    delay(10);
+    if (DEBUG_OPTO) {
+      //Serial.print(b);
+    }
+    delay(20);
     if (b == 0) {
-      Serial.println(i);
+      if (DEBUG_OPTO) {
+        Serial.println(i);
+      }
       return (i < 5);
     }
   }
-  Serial.println("");
+  if (DEBUG_OPTO) {
+    Serial.println("");
+  }
   return false;
 }
 
@@ -140,15 +151,15 @@ void loop() {
   old_porta_armadilha = porta_armadilha;
 
   // carrega status atual das bombas
-  bomba_01_on = digitalRead(INPUT_BOMBA_01_ON);
-  bomba_02_on = digitalRead(INPUT_BOMBA_02_ON);
-  bomba_03_on = digitalRead(INPUT_BOMBA_03_ON);
+  bomba_01_on = !digitalRead(INPUT_BOMBA_01_ON);
+  bomba_02_on = !digitalRead(INPUT_BOMBA_02_ON);
+  bomba_03_on = !digitalRead(INPUT_BOMBA_03_ON);
 
   bomba_01_set = readBomba(INPUT_BOMBA_01_SET);
   bomba_02_set = readBomba(INPUT_BOMBA_02_SET);
   bomba_03_set = readBomba(INPUT_BOMBA_03_SET);
 
-  porta_armadilha = digitalRead(INPUT_PORTA_ARMADILHA);
+  porta_armadilha = !digitalRead(INPUT_PORTA_ARMADILHA);
   
   status_changed = (
     (old_bomba_01_on != bomba_01_on) ||
@@ -157,24 +168,18 @@ void loop() {
     (old_bomba_01_set != bomba_01_set) ||
     (old_bomba_02_set != bomba_02_set) ||
     (old_bomba_03_set != bomba_03_set) ||
-    (old_porta_armadilha = porta_armadilha)
+    (old_porta_armadilha != porta_armadilha)
     );
 
   if (status_changed) {
-    Serial.print("BOMBA 01:"); Serial.print(bomba_01_on ? "ON" : "OFF"); Serial.print(","); Serial.print(bomba_01_set ? "ARMADA" : "DESARMADA"); Serial.print("  ");
-    Serial.print("BOMBA 02:"); Serial.print(bomba_02_on ? "ON" : "OFF"); Serial.print(","); Serial.print(bomba_02_set ? "ARMADA" : "DESARMADA"); Serial.print("  ");
-    Serial.print("BOMBA 03:"); Serial.print(bomba_03_on ? "ON" : "OFF"); Serial.print(","); Serial.print(bomba_03_set ? "ARMADA" : "DESARMADA"); Serial.print("  ");
+    Serial.print("BOMBA 01:"); Serial.print(bomba_01_on ? "ON " : "OFF"); Serial.print(","); Serial.print(bomba_01_set ? "ARMADA   " : "DESARMADA"); Serial.print("  ");
+    Serial.print("BOMBA 02:"); Serial.print(bomba_02_on ? "ON " : "OFF"); Serial.print(","); Serial.print(bomba_02_set ? "ARMADA   " : "DESARMADA"); Serial.print("  ");
+    Serial.print("BOMBA 03:"); Serial.print(bomba_03_on ? "ON " : "OFF"); Serial.print(","); Serial.print(bomba_03_set ? "ARMADA   " : "DESARMADA"); Serial.print("  ");
     Serial.print(porta_armadilha ? "PORTA FECHADA" : "PORTA ABERTA");
     Serial.println();
     
-    boolean bombas_ligadas = 
-      !digitalRead(INPUT_BOMBA_01_ON) && 
-      !digitalRead(INPUT_BOMBA_02_ON) && 
-      !digitalRead(INPUT_BOMBA_03_ON);
-    boolean bombas_armadas = 
-      readBomba(INPUT_BOMBA_01_SET) && 
-      readBomba(INPUT_BOMBA_02_SET) && 
-      readBomba(INPUT_BOMBA_03_SET);
+    boolean bombas_ligadas = bomba_01_on && bomba_02_on && bomba_03_on;
+    boolean bombas_armadas = bomba_01_set && bomba_02_set && bomba_03_set;
   
     if (bombas_ligadas) {
       digitalWrite(OUTPUT_BOMBAS_LIGADAS, LOW);
@@ -183,6 +188,6 @@ void loop() {
       digitalWrite(OUTPUT_BOMBAS_OK, LOW);
     }
   }
-  delay(500);
+  delay(150);
 
 }
