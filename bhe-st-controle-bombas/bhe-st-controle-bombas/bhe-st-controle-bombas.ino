@@ -196,7 +196,7 @@ void loop() {
     if (bombas_armadas) {
       digitalWrite(OUTPUT_BOMBAS_OK, LOW);
     }
-    digitalWrite(OUTPUT_PORTA_ARMADILHA, porta_armadilha);
+    digitalWrite(OUTPUT_PORTA_ARMADILHA, !porta_armadilha);
 
     if ((old_bombas_armadas != bombas_armadas) || (old_porta_armadilha != porta_armadilha)) {
        if (bombas_armadas && porta_armadilha) {
