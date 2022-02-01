@@ -11,9 +11,9 @@ FUNCIONAMENTO
 
 Cabo manga 4 vias.
 
-- Vermelho: VCC
+- Vermelho: PORTA FECHADA (era VCC)
 - Marrom: GND
-- Amarelo: RESET (não implementado)
+- Amarelo: (era RESET, não implementado)
 - Laranja: OK (bombas armadas)
 
 2) Conexão BOMBA_01 a BOMBA_03
@@ -25,7 +25,7 @@ Cabo manga 4 vias.
 
 3) Sensor da porta da armadilha
 
-- Sensor Hall
+- Sensor Reed
 - GND
 
 ****************************************************************************/
@@ -45,14 +45,15 @@ Cabo manga 4 vias.
 
 #define INPUT_PORTA_ARMADILHA (8)
 
-#define OUTPUT_BOMBAS_LIGADAS (9)
-#define OUTPUT_BOMBAS_OK (10)  
-#define OUTPUT_PORTA_ARMADILHA (11)
+#define OUTPUT_PORTA_ARMADILHA (10)
+#define OUTPUT_BOMBAS_LIGADAS (11)
+#define OUTPUT_BOMBAS_OK (12)  
 
-// OUTPUT_BOMBAS_OK --> vermelho
+// OUTPUT_PORTA_ARMADILHA --> vermelho (D10)
 // GROUND --> marrom
-// OUTPUT_PORTA_ARMADILHA --> laranja
-// OUTPUT_BOMBAS_LIGADAS --> amarelo
+// OUTPUT_BOMBAS_LIGADAS --> laranja (D11)
+// OUTPUT_BOMBAS_OK --> amarelo (D12)
+
 
 void reset_game() {
 
