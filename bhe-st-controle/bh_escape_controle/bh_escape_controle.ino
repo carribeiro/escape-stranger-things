@@ -245,10 +245,12 @@ boolean atualiza_status() {
   will_ligado = digitalRead(IN_WILL_LIGADO);  
   armadilha_ligada = digitalRead(IN_ARMADILHA_LIGADA);  
 
-  if (arvore_ligada) { arvore_ok = !digitalRead(IN_ARVORE_OK); } else { arvore_ok = false; }
-  if (rpg_ligado) { rpg_ok = !digitalRead(IN_RPG_OK); } else { rpg_ok = false; }
-  if (will_ligado) { will_ok = !digitalRead(IN_WILL_OK); } else { will_ok = false; }
-  if (armadilha_ligada) { 
+  // botão de bypass não pode ser sinal elétrico; precisa ser um io separado, porque
+  // senão eu desligo o módulo e ele para de funcionar pra passar o resultado
+  if (true || arvore_ligada) { arvore_ok = !digitalRead(IN_ARVORE_OK); } else { arvore_ok = false; }
+  if (true || rpg_ligado) { rpg_ok = !digitalRead(IN_RPG_OK); } else { rpg_ok = false; }
+  if (true || will_ligado) { will_ok = !digitalRead(IN_WILL_OK); } else { will_ok = false; }
+  if (true || armadilha_ligada) { 
     armadilha_ok = !digitalRead(IN_ARMADILHA_OK); 
     armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
   } 
