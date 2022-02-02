@@ -394,7 +394,7 @@ void loop() {
     // algoritmo simples de debounce
     delay(50);
     if (digitalRead(IN_RESTART_ARVORE) == LOW) {
-      Serial.println();
+      Serial.println("-----------------------");
       Serial.println("RESTART ARVORE PRESSIONADO");
       arvore_restart_pressed = true;
     }
@@ -412,7 +412,18 @@ void loop() {
   if (digitalRead(IN_RESTART_RPG) == LOW) {
     // algoritmo simples de debounce
     delay(50);
-    if (digitalRead(IN_RESTART_RPG) == LOW) {
+    if ((digitalRead(IN_RESTART_RPG) == LOW) && (!rpg_restart_pressed)) {
+      Serial.println("-----------------------");
+      Serial.println("RESTART RPG PRESSIONADO");
+      rpg_restart_pressed = true;
+    }
+  }
+  if (rpg_restart_pressed && (digitalRead(IN_RESTART_RPG) == HIGH)) {
+    // algoritmo simples de debounce
+    delay(50);
+    if (digitalRead(IN_RESTART_RPG) == HIGH) {
+      Serial.println("RESTART RPG SOLTO");
+      rpg_restart_pressed = false;
       estagio_rpg();
     }
   }
@@ -463,7 +474,7 @@ void loop() {
         imprime_status();
       }
       else if (input.equalsIgnoreCase("RESTART")) {
-        Serial.println("Travando porta principal"); 
+        Serial.println("Reiniciando o jogo"); 
         reset_game();
       }
       else if (input.equalsIgnoreCase("LIGA TV")) {
