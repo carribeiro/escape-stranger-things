@@ -250,12 +250,12 @@ boolean atualiza_status() {
   if (true || arvore_ligada) { arvore_ok = !digitalRead(IN_ARVORE_OK); } else { arvore_ok = false; }
   if (true || rpg_ligado) { rpg_ok = !digitalRead(IN_RPG_OK); } else { rpg_ok = false; }
   if (true || will_ligado) { will_ok = !digitalRead(IN_WILL_OK); } else { will_ok = false; }
-  if (true || armadilha_ligada) { 
-    armadilha_ok = !digitalRead(IN_ARMADILHA_OK); 
+  if (true || armadilha_ligada) {
+    armadilha_ok = !digitalRead(IN_ARMADILHA_OK);
     armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
-  } 
-  else { 
-    armadilha_ok = false; 
+  }
+  else {
+    armadilha_ok = false;
     armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
   }
 
@@ -265,7 +265,7 @@ boolean atualiza_status() {
     (old_rpg_ok != rpg_ok) ||
     (old_will_ok != will_ok) ||
     (old_armadilha_ok != armadilha_ok) ||
-    (old_armadilha_porta != armadilha_porta) 
+    (old_armadilha_porta != armadilha_porta)
     );
 }
 
@@ -274,23 +274,24 @@ void imprime_status() {
   Serial.print("STATUS ("); Serial.print(long(millis()/1000)); Serial.println(")");
 
   Serial.print("Árvore: ");
-  Serial.print(arvore_ligada ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" "); 
-  Serial.print(arvore_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" "); 
+  Serial.print(arvore_ligada ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" ");
+  Serial.print(arvore_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" ");
   Serial.println(arvore_resolvida ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 
   Serial.print("RPG: ");
-  Serial.print(rpg_ligado ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" "); 
-  Serial.print(rpg_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" "); 
+  Serial.print(rpg_ligado ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" ");
+  Serial.print(rpg_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" ");
   Serial.println(rpg_resolvido ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 
   Serial.print("Will: ");
-  Serial.print(will_ligado ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" "); 
-  Serial.print(will_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" "); 
+  Serial.print(will_ligado ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" ");
+  Serial.print(will_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" ");
   Serial.println(will_resolvido ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 
   Serial.print("Armadilha: ");
-  Serial.print(armadilha_ligada ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" "); 
-  Serial.print(armadilha_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" "); 
+  Serial.print(armadilha_ligada ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" ");
+  Serial.print(armadilha_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" ");
+  Serial.print(armadilha_porta ? "[FECHADA]" : "[ABERTA]"); Serial.print(" ");
   Serial.println(armadilha_resolvida ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 }
 
@@ -314,10 +315,10 @@ void loop() {
     unsigned long blink_time;
     blink_time = millis()/1000;
     if ((blink_time % 2) == 0) {
-      digitalWrite(LED_ARMADILHA_OK, HIGH);   
+      digitalWrite(LED_ARMADILHA_OK, HIGH);  
     }
     else {
-      digitalWrite(LED_ARMADILHA_OK, LOW);   
+      digitalWrite(LED_ARMADILHA_OK, LOW);  
     }
   }
 
@@ -476,7 +477,7 @@ void loop() {
         imprime_status();
       }
       else if (input.equalsIgnoreCase("RESTART")) {
-        Serial.println("Reiniciando o jogo"); 
+        Serial.println("Reiniciando o jogo");
         reset_game();
       }
       else if (input.equalsIgnoreCase("LIGA TV")) {
@@ -513,7 +514,7 @@ void loop() {
          Serial.println();
       }
       else if (input.equalsIgnoreCase("TEST")) {
-         Serial.println("TEST"); 
+         Serial.println("TEST");
          test_game();
       }
       else {
@@ -521,6 +522,6 @@ void loop() {
         Serial.print(input); Serial.print("> "); Serial.println(input.length());
       }
   }
-  
+ 
   delay(100);
 }
