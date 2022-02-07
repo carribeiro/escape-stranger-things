@@ -24,7 +24,7 @@
 // Roxo - desconectado  --> vermelho 
 // Pino vazio
 // Cinza - Ground --> marrom
-// Branco - Pino digital 3 --> laranja (RESET)
+// Branco - Pino digital 3 --> sem uso
 // Preto - Pino Digital 2 --> amarelo (STATUS)
 
 //Bibliotecas
@@ -33,7 +33,6 @@
 #include <Adafruit_PN532.h>
 
 // Control pins
-#define RPG_RESTART 3
 #define RPG_STATUS 2
 
 // If using the breakout with SPI, define the pins for SPI communication.
@@ -57,12 +56,6 @@ boolean nfc_found[NUM_ADAPTERS] = {false, false, false, false};
 String data[NUM_ADAPTERS];
 boolean dataUpdate = false;
 boolean rpgStatus = false;
-
-#define STATE_WAITCLEAR (0)
-#define STATE_WAITCARDS (1)
-#define STATE_RPGOK (2)
-int rpgState = STATE_WAITCLEAR;
-int rpgReset = HIGH;
 
 // CARTAS
 #define NUM_CARDS 9
@@ -129,125 +122,94 @@ void setup() {
     }
   }
   
-  pinMode(RPG_RESTART, INPUT_PULLUP);
   pinMode(RPG_STATUS, OUTPUT);
-  rpgState = STATE_WAITCLEAR;
+  digitalWrite(RPG_STATUS, HIGH);
 }
 
 void loop() {
-    for ( int i = 0; i < NUM_ADAPTERS; i++ ) {
-      if (!nfc_found[i]) continue;
-      boolean success;
-      boolean card_found;
-      uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
-      uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-    
+  for ( int i = 0; i < NUM_ADAPTERS; i++ ) {
+    if (!nfc_found[i]) continue;
+    boolean success;
+    boolean card_found;
+    uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
+    uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
+  
 
-      // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
-      // 'uid' will be populated with the UID, and uidLength will indicate
-      // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
-      success = nfc[i].readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength, 100);
-    
-      if (success) {
-        //Serial.println("Found a card!");
-        //Serial.print("SS:" + String(i)+ " ");
-        //Serial.print("UID Length: "); Serial.print(uidLength, DEC); Serial.println(" bytes");
-        //Serial.print("UID Value: ");
-        for (uint8_t i=0; i < uidLength; i++) {
-          // Serial.print(" 0x"); Serial.print(uid[i], HEX); 
-        }
-        // Serial.println("");
-        // test to check if it's the right card
-        // should set the cards with a code to avoid having to fix the code when replacing defective or worn cards
-        // if its the right card increments the cardsOk counter
-        card_found = false;
-        for ( int card_id = 0; card_id < NUM_CARDS; card_id++ ) {
-          if (memcmp(CARDS[card_id], uid, 4) == 0) {
-            // found a card in the card library, save on cards_on_table
-            if (cards_on_table[i] != card_id) {
-              Serial.println("Found card: pos(" + String(i)+") card("+String(card_id)+")");
-            }
-            cards_on_table[i] = card_id;
-            card_found = true;
-            break;
+    // Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
+    // 'uid' will be populated with the UID, and uidLength will indicate
+    // if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
+    success = nfc[i].readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength, 100);
+  
+    if (success) {
+      //Serial.println("Found a card!");
+      //Serial.print("SS:" + String(i)+ " ");
+      //Serial.print("UID Length: "); Serial.print(uidLength, DEC); Serial.println(" bytes");
+      //Serial.print("UID Value: ");
+      for (uint8_t i=0; i < uidLength; i++) {
+        // Serial.print(" 0x"); Serial.print(uid[i], HEX); 
+      }
+      // Serial.println("");
+      // test to check if it's the right card
+      // should set the cards with a code to avoid having to fix the code when replacing defective or worn cards
+      // if its the right card increments the cardsOk counter
+      card_found = false;
+      for ( int card_id = 0; card_id < NUM_CARDS; card_id++ ) {
+        if (memcmp(CARDS[card_id], uid, 4) == 0) {
+          // found a card in the card library, save on cards_on_table
+          if (cards_on_table[i] != card_id) {
+            Serial.println("Found card: pos(" + String(i)+") card("+String(card_id)+")");
           }
-        }
-        // if it finishes the loop without finding the card, zero the cards_on_table entry for the sensor
-        if (!card_found) {
-          if (cards_on_table[i] != ID_NONE) {
-            // card was removed
-            Serial.println("Removed card:" + String(i));
-            cards_on_table[i] = ID_NONE;
-          }
+          cards_on_table[i] = card_id;
+          card_found = true;
+          break;
         }
       }
-      else {
-        // check if there was a card there before
+      // if it finishes the loop without finding the card, zero the cards_on_table entry for the sensor
+      if (!card_found) {
         if (cards_on_table[i] != ID_NONE) {
           // card was removed
           Serial.println("Removed card:" + String(i));
           cards_on_table[i] = ID_NONE;
         }
       }
-      
-      // 50ms delay between card reads; 200ms to read all four cards
-      delay(50);
     }
-
-    /// counts how many cards are in the right position
-    cardsOk = 0;
-    for ( int i = 0; i < NUM_ADAPTERS; i++ ) {  
-      if (RPG_answer[i] == cards_on_table[i]) {
-        cardsOk++;        
+    else {
+      // check if there was a card there before
+      if (cards_on_table[i] != ID_NONE) {
+        // card was removed
+        Serial.println("Removed card:" + String(i));
+        cards_on_table[i] = ID_NONE;
       }
     }
-
-    // check state
-    switch(rpgState) {
-      case STATE_WAITCLEAR: 
-        // waits until there are zero cards in place to start the game, keeping the status low
-        if (cardsOk == 0) {
-          rpgStatus = false;
-          digitalWrite(RPG_STATUS, HIGH);
-          rpgState = STATE_WAITCARDS;
-          Serial.println("Waiting cards!");
-        }
-        else {
-          Serial.print(cardsOk);          
-          Serial.println(" cartas a remover!");          
-        }
-        break;
-      case STATE_WAITCARDS: 
-        // waits until there are four cards in place to finish the game
-        if (cardsOk == 4) {
-          rpgStatus = true;
-          digitalWrite(RPG_STATUS, LOW);
-          rpgState = STATE_RPGOK;
-          Serial.println("Game ok!");
-        }
-        break;
-      case STATE_RPGOK: 
-        // game ok, keeps the status sign as "ok" independently of cards being removed
-        Serial.println("Waiting to reset!");
-        break;
-    }
-
-  // reads the reset sign; if it's DOWN and if it was previously UP, triggers the reset
-  if (!digitalRead(RPG_RESTART) && rpgReset) {
-    Serial.println("Game reset!");
-    rpgStatus = false;
-    digitalWrite(RPG_STATUS, HIGH);
-    rpgState = STATE_WAITCLEAR;
+    
+    // 50ms delay between card reads; 200ms to read all four cards
+    delay(50);
   }
-  rpgReset = digitalRead(RPG_RESTART);
+
+  /// counts how many cards are in the right position
+  cardsOk = 0;
+  for ( int i = 0; i < NUM_ADAPTERS; i++ ) {  
+    if (RPG_answer[i] == cards_on_table[i]) {
+      cardsOk++;        
+    }
+  }
+
+  // waits until there are four cards in place to finish the game
+  if (cardsOk == 4) {
+    rpgStatus = true;
+    digitalWrite(RPG_STATUS, LOW);
+    Serial.println("Game ok!");
+  } 
+  else {
+    digitalWrite(RPG_STATUS, HIGH);  
+  }
 
   String input;
   if(Serial.available()) {
       input = Serial.readStringUntil('\n');
       Serial.println(input);
-      if (input.equals("WAITCARDS\n")) {
-        Serial.println("Force WAITCARDS");
-        rpgState = STATE_WAITCARDS;
+      if (input.equals("TEST\n")) {
+        Serial.println("TEST");
       }
   }
   

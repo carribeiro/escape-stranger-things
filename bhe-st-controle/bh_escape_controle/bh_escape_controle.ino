@@ -43,6 +43,16 @@ boolean rpg_resolvido = false;
 boolean will_resolvido = false;
 boolean armadilha_resolvida = false;
 
+#define ESTAGIO_INICIAL   (0)
+#define ESTAGIO_ARVORE    (1)
+#define ESTAGIO_RPG       (2)
+#define ESTAGIO_WILL      (3)
+#define ESTAGIO_ARMADILHA (4)
+#define ESTAGIO_FINAL     (5)
+#define ESTAGIO_NENHUM   (-1)
+
+int estagio = ESTAGIO_NENHUM;
+
 void reset_game() {
 
   // configura pinos
@@ -67,6 +77,8 @@ void reset_game() {
   pinMode(IN_RESTART_RPG, INPUT_PULLUP);
   pinMode(IN_RESTART_WILL, INPUT_PULLUP);
   pinMode(IN_RESTART_ARMADILHA, INPUT_PULLUP);
+
+  estagio = ESTAGIO_INICIAL;
 
   // zera variáveis de controle
   arvore_ligada = digitalRead(IN_ARVORE_LIGADA);  
@@ -148,6 +160,7 @@ void destrava_porta_principal() {
 }
 
 void estagio_arvore() {
+  estagio = ESTAGIO_ARVORE;
   Serial.println("Estágio ARVORE");
   desliga_tomada_tv();
   trava_porta_armadilha();
@@ -156,6 +169,7 @@ void estagio_arvore() {
 }
 
 void estagio_rpg() {
+  estagio = ESTAGIO_RPG;
   Serial.println("Estágio RPG");
   liga_tomada_tv();
   trava_porta_armadilha();
@@ -164,6 +178,7 @@ void estagio_rpg() {
 }
 
 void estagio_will() {
+  estagio = ESTAGIO_WILL;
   Serial.println("Estágio WILL");
   liga_tomada_tv();
   destrava_porta_armadilha();
@@ -172,6 +187,7 @@ void estagio_will() {
 }
 
 void estagio_armadilha() {
+  estagio = ESTAGIO_ARMADILHA;
   Serial.println("Estágio ARMADILHA");
   liga_tomada_tv();
   destrava_porta_armadilha();
@@ -180,6 +196,7 @@ void estagio_armadilha() {
 }
 
 void estagio_final() {  
+  estagio = ESTAGIO_FINAL;
   desliga_tomada_tv();
   destrava_porta_armadilha();
   destrava_porta_armario();
@@ -296,6 +313,7 @@ void imprime_status() {
 }
 
 boolean armadilha_blink = false;
+unsigned long hora_restart_armadilha = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -450,22 +468,32 @@ void loop() {
     }
   }
 
-  if (analogRead(IN_RESTART_ARMADILHA) < 120) {
+  if (!armadilha_restart_pressed && (analogRead(IN_RESTART_ARMADILHA) < 120)) {
     // algoritmo simples de debounce
     delay(50);
     if (analogRead(IN_RESTART_ARMADILHA) < 120) {
       Serial.println();
       Serial.println("RESTART ARMADILHA PRESSIONADO");
       armadilha_restart_pressed = true;
+      hora_restart_armadilha = millis();
     }
-  }
-  if (will_restart_pressed && (analogRead(IN_RESTART_ARMADILHA) >= 120)) {
+  } 
+  else if (armadilha_restart_pressed && (analogRead(IN_RESTART_ARMADILHA) >= 120)) {
     // algoritmo simples de debounce
     delay(50);
     if (analogRead(IN_RESTART_ARMADILHA) >= 120) {
       Serial.println("RESTART ARMADILHA SOLTO");
       armadilha_restart_pressed = false;
-      estagio_armadilha();
+      if ((millis() - hora_restart_armadilha) <= 2000) {
+        Serial.println("RESTART ARMADILHA < 2000");
+        hora_restart_armadilha = 0;
+        estagio_armadilha();
+      }
+      else {
+        Serial.println("RESTART ARMADILHA > 2000");
+        hora_restart_armadilha = 0;
+        estagio_final();
+      }
     }
   }
 
