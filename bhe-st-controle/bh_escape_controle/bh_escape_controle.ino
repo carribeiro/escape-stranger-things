@@ -52,6 +52,19 @@ boolean armadilha_resolvida = false;
 #define ESTAGIO_NENHUM   (-1)
 
 int estagio = ESTAGIO_NENHUM;
+boolean armadilha_blink = false;
+boolean inicial_blink = false;
+unsigned long hora_restart_armadilha = 0;
+
+boolean read_will_ok() {
+  if (!digitalRead(IN_WILL_OK)) {
+    delay(30);
+    if (!digitalRead(IN_WILL_OK)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 void reset_game() {
 
@@ -88,7 +101,7 @@ void reset_game() {
 
   arvore_ok = !digitalRead(IN_ARVORE_OK);
   rpg_ok = !digitalRead(IN_RPG_OK);
-  will_ok = !digitalRead(IN_WILL_OK);
+  will_ok = read_will_ok();
   armadilha_ok = !digitalRead(IN_ARMADILHA_OK);
   armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
 
@@ -101,6 +114,7 @@ void reset_game() {
   armadilha_resolvida = false;  
   digitalWrite(RELE_PORTA_PRINCIPAL, LOW);
 
+  inicial_blink = true;
 }
 
 void desliga_tomada_tv() {
@@ -160,6 +174,11 @@ void destrava_porta_principal() {
 }
 
 void estagio_arvore() {
+  inicial_blink = false;  
+  digitalWrite(LED_RPG_OK, rpg_ok);  
+  digitalWrite(LED_WILL_OK, will_ok);  
+  digitalWrite(LED_ARMADILHA_OK, LOW);  
+
   estagio = ESTAGIO_ARVORE;
   Serial.println("Estágio ARVORE");
   desliga_tomada_tv();
@@ -169,6 +188,11 @@ void estagio_arvore() {
 }
 
 void estagio_rpg() {
+  inicial_blink = false;  
+  digitalWrite(LED_RPG_OK, rpg_ok);  
+  digitalWrite(LED_WILL_OK, will_ok);  
+  digitalWrite(LED_ARMADILHA_OK, LOW);  
+
   estagio = ESTAGIO_RPG;
   Serial.println("Estágio RPG");
   liga_tomada_tv();
@@ -178,6 +202,11 @@ void estagio_rpg() {
 }
 
 void estagio_will() {
+  inicial_blink = false;  
+  digitalWrite(LED_RPG_OK, rpg_ok);  
+  digitalWrite(LED_WILL_OK, will_ok);  
+  digitalWrite(LED_ARMADILHA_OK, LOW);  
+
   estagio = ESTAGIO_WILL;
   Serial.println("Estágio WILL");
   liga_tomada_tv();
@@ -187,6 +216,11 @@ void estagio_will() {
 }
 
 void estagio_armadilha() {
+  inicial_blink = false;  
+  digitalWrite(LED_RPG_OK, rpg_ok);  
+  digitalWrite(LED_WILL_OK, will_ok);  
+  digitalWrite(LED_ARMADILHA_OK, LOW);  
+
   estagio = ESTAGIO_ARMADILHA;
   Serial.println("Estágio ARMADILHA");
   liga_tomada_tv();
@@ -201,6 +235,7 @@ void estagio_final() {
   destrava_porta_armadilha();
   destrava_porta_armario();
   destrava_porta_principal();
+  inicial_blink = true;  
 }
 
 void test_game() {
@@ -209,7 +244,7 @@ void test_game() {
   digitalWrite(LED_RPG_OK, HIGH); delay(500);
   digitalWrite(LED_RPG_OK, LOW); delay(500);
   digitalWrite(LED_WILL_OK, HIGH); delay(500);
-  digitalWrite(LED_WILL_OK, LOW); delay(500);
+    digitalWrite(LED_WILL_OK, LOW); delay(500);
   digitalWrite(LED_ARMADILHA_OK, HIGH); delay(500);
   digitalWrite(LED_ARMADILHA_OK, LOW); delay(500);
   delay(2000);
@@ -266,7 +301,7 @@ boolean atualiza_status() {
   // senão eu desligo o módulo e ele para de funcionar pra passar o resultado
   if (true || arvore_ligada) { arvore_ok = !digitalRead(IN_ARVORE_OK); } else { arvore_ok = false; }
   if (true || rpg_ligado) { rpg_ok = !digitalRead(IN_RPG_OK); } else { rpg_ok = false; }
-  if (true || will_ligado) { will_ok = !digitalRead(IN_WILL_OK); } else { will_ok = false; }
+  if (true || will_ligado) {  will_ok = read_will_ok(); } else { will_ok = false; }
   if (true || armadilha_ligada) {
     armadilha_ok = !digitalRead(IN_ARMADILHA_OK);
     armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
@@ -312,9 +347,6 @@ void imprime_status() {
   Serial.println(armadilha_resolvida ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 }
 
-boolean armadilha_blink = false;
-unsigned long hora_restart_armadilha = 0;
-
 void setup() {
   Serial.begin(115200);
   Serial.println();
@@ -329,7 +361,21 @@ void loop() {
   // Serial.println("LOOP");
   // Serial.println(analogRead(IN_RESTART_WILL));
 
-  if (armadilha_blink) {
+  if (inicial_blink) {
+    unsigned long blink_time;
+    blink_time = millis()/1000;
+    if ((blink_time % 2) == 0) {
+      digitalWrite(LED_RPG_OK, HIGH);  
+      digitalWrite(LED_WILL_OK, HIGH);  
+      digitalWrite(LED_ARMADILHA_OK, HIGH);  
+    }
+    else {
+      digitalWrite(LED_RPG_OK, LOW);  
+      digitalWrite(LED_WILL_OK, LOW);  
+      digitalWrite(LED_ARMADILHA_OK, LOW);  
+    }
+  }
+  else if (armadilha_blink) {
     unsigned long blink_time;
     blink_time = millis()/1000;
     if ((blink_time % 2) == 0) {
@@ -351,9 +397,14 @@ void loop() {
   if (arvore_ok != old_arvore_ok) {
     if (arvore_ok) {
       Serial.println("Árvore OK");
-      // digitalWrite(LED_ARVORE_OK, HIGH);
-      Serial.println("Árvore RESOLVIDA");
-      estagio_rpg();
+      if (estagio == ESTAGIO_ARVORE) {
+        // digitalWrite(LED_ARVORE_OK, HIGH);
+        Serial.println("Árvore RESOLVIDA");
+        estagio_rpg();
+      }
+      else {
+        Serial.println("Árvore ok descartada (estágio errado)");      
+      }
     }
     else {
       Serial.println("Árvore NÃO OK");
@@ -365,9 +416,14 @@ void loop() {
   if (rpg_ok != old_rpg_ok) {
     if (rpg_ok) {
       Serial.println("RPG OK");
-      digitalWrite(LED_RPG_OK, HIGH);
-      Serial.println("RPG RESOLVIDO");
-      estagio_will();
+      if (estagio == ESTAGIO_RPG) {
+        digitalWrite(LED_RPG_OK, HIGH);
+        Serial.println("RPG RESOLVIDO");
+        estagio_will();
+      }
+      else {
+        Serial.println("RPG ok descartado (estágio errado)");      
+      }
     }
     else {
       Serial.println("RPG NÃO OK");
@@ -379,9 +435,14 @@ void loop() {
   if (will_ok != old_will_ok) {
     if (will_ok) {
       Serial.println("Will OK");
-      digitalWrite(LED_WILL_OK, HIGH);
-      Serial.println("Will RESOLVIDO");
-      estagio_armadilha();
+      if (estagio == ESTAGIO_WILL) {
+        digitalWrite(LED_WILL_OK, HIGH);
+        Serial.println("Will RESOLVIDO");
+        estagio_armadilha();
+      }
+      else {
+        Serial.println("Will ok descartado (estágio errado)");
+      }
     }
     else {
       Serial.println("Will NÃO OK");
@@ -392,16 +453,21 @@ void loop() {
   // ARMADILHA
   if ((armadilha_ok != old_armadilha_ok) || (armadilha_porta != old_armadilha_porta)) {
     if (armadilha_ok) {
-      if (armadilha_porta) {
-        armadilha_blink = false;
-        Serial.println("Armadilha OK + Porta FECHADA");
-        digitalWrite(LED_ARMADILHA_OK, HIGH);
-        Serial.println("ARMADILHA RESOLVIDA");
-        estagio_final();
+      if (estagio == ESTAGIO_ARMADILHA) {
+        if (armadilha_porta) {
+          armadilha_blink = false;
+          Serial.println("Armadilha OK + Porta FECHADA");
+          digitalWrite(LED_ARMADILHA_OK, HIGH);
+          Serial.println("ARMADILHA RESOLVIDA");
+          estagio_final();
+        }
+        else {
+          Serial.println("Armadilha OK + Porta FECHADA");
+          armadilha_blink = true;
+        }
       }
       else {
-        Serial.println("Armadilha OK + Porta FECHADA");
-        armadilha_blink = true;
+        Serial.println("Árvore ok descartada (estágio errado)");      
       }
     }
     else {
