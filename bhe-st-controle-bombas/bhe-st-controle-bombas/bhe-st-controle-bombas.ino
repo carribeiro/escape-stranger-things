@@ -191,10 +191,20 @@ void loop() {
     bombas_armadas = bomba_01_set && bomba_02_set && bomba_03_set;
   
     if (bombas_ligadas) {
-      digitalWrite(OUTPUT_BOMBAS_LIGADAS, LOW);
+      // usa dos dois sinais pra indicar bombas armadas
+      // o sinal de bombas ligadas é um reed, pouco confiável
+      // e acho que a porta de bombas_ok pode ter queimado
+      // digitalWrite(OUTPUT_BOMBAS_LIGADAS, LOW);
     }
     if (bombas_armadas) {
+      digitalWrite(OUTPUT_BOMBAS_LIGADAS, LOW);
       digitalWrite(OUTPUT_BOMBAS_OK, LOW);
+      Serial.println("SINALIZA BOMBAS ARMADAS");
+    }
+    else {
+      digitalWrite(OUTPUT_BOMBAS_LIGADAS, HIGH);
+      digitalWrite(OUTPUT_BOMBAS_OK, HIGH);
+      Serial.println("SINALIZA BOMBAS NÃO ARMADAS");
     }
     digitalWrite(OUTPUT_PORTA_ARMADILHA, !porta_armadilha);
 
