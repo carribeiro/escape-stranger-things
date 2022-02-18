@@ -28,9 +28,7 @@
 
 // STATUS DA BOMBA
 #define BOMBA_STANDBY 0
-#define BOMBA_START 1
-#define BOMBA_ONLINE 2
-#define BOMBA_ARMADA 3
+#define BOMBA_ARMADA 2
 #define BUZZER 8
 #define LED_BOMBA_ATIVA 9
 
@@ -121,16 +119,6 @@ void loop() {
     if (newState == LOW) {     // Yes, still low
       switch (status_bomba) {
         case BOMBA_STANDBY:
-          Serial.println("Estado STANDBY --> START"); 
-          digitalWrite(LED_BOMBA_ATIVA, LOW);
-          status_bomba = BOMBA_START;          
-          break;
-        case BOMBA_START:
-          Serial.println("Estado START --> ATIVA"); 
-          digitalWrite(LED_BOMBA_ATIVA, LOW);
-          status_bomba = BOMBA_ONLINE;
-          break;
-        case BOMBA_ONLINE:
           Serial.println("Estado ONLINE --> ATIVA"); 
           digitalWrite(LED_BOMBA_ATIVA, HIGH);
           status_bomba = BOMBA_ARMADA;
@@ -138,7 +126,7 @@ void loop() {
         case BOMBA_ARMADA:
           Serial.println("Estado ATIVA --> ONLINE"); 
           digitalWrite(LED_BOMBA_ATIVA, LOW);
-          status_bomba = BOMBA_ONLINE;
+          status_bomba = BOMBA_STANDBY;
           status_animacao = 0;
           break;
       }
@@ -152,59 +140,6 @@ void loop() {
       led_corpo_bomba.setBrightness(BRILHO_CORPO_BOMBA_STANDBY);
       seta_led_corpo_bomba(led_corpo_bomba.Color(  20,   10,   40));    // lilás fraco
       led_base_bomba.setBrightness(BRILHO_BASE_BOMBA_STANDBY);
-      seta_led_base_bomba(led_base_bomba.Color(  20,   10,   40));      // lilás fraco
-      break;
-
-    case BOMBA_START:
-      // aumenta brilho do LED
-      led_corpo_bomba.setBrightness(BRILHO_CORPO_BOMBA_ATIVA);
-      led_base_bomba.setBrightness(BRILHO_BASE_BOMBA_ATIVA);
-
-      // toca animação com os LEDs em azul; ao final da animação, pula automaticamente para o modo BOMBA_ONLINE
-      seta_led_corpo_bomba(led_base_bomba.Color(0,   32,   32)); // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   64,   64));  // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   96,   96));  // CIANO
-      delay(100);
-      seta_led_corpo_bomba(led_base_bomba.Color(0,   127,   127)); // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   96,   96));  // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   64,   64));  // CIANO
-      delay(100);
-      seta_led_corpo_bomba(led_base_bomba.Color(0,   32,   32)); // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   64,   64));  // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   96,   96));  // CIANO
-      delay(100);
-      seta_led_corpo_bomba(led_base_bomba.Color(0,   127,   127)); // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   96,   96));  // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   64,   64));  // CIANO
-      delay(100);
-      seta_led_corpo_bomba(led_base_bomba.Color(0,   32,   32)); // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   64,   64));  // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   96,   96));  // CIANO
-      delay(100);
-      seta_led_corpo_bomba(led_base_bomba.Color(0,   127,   127)); // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   96,   96));  // CIANO
-      delay(100);
-      seta_led_base_bomba(led_base_bomba.Color(0,   64,   64));  // CIANO
-      delay(100);
-      status_bomba = BOMBA_ONLINE;
-      break;
-
-    case BOMBA_ONLINE:
-      // não tem animação no modo standby, fica com luz fraca
-      led_corpo_bomba.setBrightness(BRILHO_CORPO_BOMBA_ATIVA);
-      seta_led_corpo_bomba(led_corpo_bomba.Color(  20,   10,   40));    // lilás fraco
-      led_base_bomba.setBrightness(BRILHO_BASE_BOMBA_ATIVA);
       seta_led_base_bomba(led_base_bomba.Color(  20,   10,   40));      // lilás fraco
       break;
 
