@@ -91,8 +91,6 @@ void reset_game() {
   pinMode(IN_RESTART_WILL, INPUT_PULLUP);
   pinMode(IN_RESTART_ARMADILHA, INPUT_PULLUP);
 
-  estagio = ESTAGIO_INICIAL;
-
   // zera variáveis de controle
   arvore_ligada = digitalRead(IN_ARVORE_LIGADA);  
   rpg_ligado = digitalRead(IN_RPG_LIGADO);  
@@ -105,14 +103,21 @@ void reset_game() {
   armadilha_ok = !digitalRead(IN_ARMADILHA_OK);
   armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
 
+  estagio_inicial();
+}
+
+void estagio_inicial() {
+  estagio = ESTAGIO_INICIAL;
+
   arvore_resolvida = false;  
-  digitalWrite(RELE_LIGA_TV, LOW);
   rpg_resolvido = false;  
-  digitalWrite(RELE_PORTA_ARMADILHA, LOW);
   will_resolvido = false;  
-  digitalWrite(RELE_PORTA_ARMARIO, LOW);
   armadilha_resolvida = false;  
-  digitalWrite(RELE_PORTA_PRINCIPAL, LOW);
+
+  desliga_tomada_tv();
+  destrava_porta_armadilha();
+  destrava_porta_armario();
+  destrava_porta_principal();
 
   inicial_blink = true;
 }
@@ -462,7 +467,7 @@ void loop() {
           estagio_final();
         }
         else {
-          Serial.println("Armadilha OK + Porta FECHADA");
+          Serial.println("Armadilha OK + Porta ABERTA");
           armadilha_blink = true;
         }
       }

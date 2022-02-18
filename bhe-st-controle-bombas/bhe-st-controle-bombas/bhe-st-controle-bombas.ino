@@ -209,8 +209,13 @@ void loop() {
     digitalWrite(OUTPUT_PORTA_ARMADILHA, !porta_armadilha);
 
     if ((old_bombas_armadas != bombas_armadas) || (old_porta_armadilha != porta_armadilha)) {
-       if (bombas_armadas && porta_armadilha) {
-         Serial.println("ARMADILHA ARMADA");
+       if (bombas_armadas) {
+         if (porta_armadilha) {
+           Serial.println("ARMADILHA ARMADA + PORTA FECHADA");
+         }
+         else {
+           Serial.println("ARMADILHA ARMADA + PORTA ABERTA");
+         }
        }
        else {
          Serial.println("ARMADILHA DESARMADA");
