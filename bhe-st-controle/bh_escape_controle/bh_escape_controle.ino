@@ -56,6 +56,16 @@ boolean armadilha_blink = false;
 boolean inicial_blink = false;
 unsigned long hora_restart_armadilha = 0;
 
+boolean read_arvore_ok() {
+  if (!digitalRead(IN_ARVORE_OK)) {
+    delay(30);
+    if (!digitalRead(IN_ARVORE_OK)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 boolean read_rpg_ok() {
   if (!digitalRead(IN_RPG_OK)) {
     delay(30);
@@ -107,7 +117,7 @@ void reset_game() {
   will_ligado = digitalRead(IN_WILL_LIGADO);  
   armadilha_ligada = digitalRead(IN_ARMADILHA_LIGADA);  
 
-  arvore_ok = !digitalRead(IN_ARVORE_OK);
+  arvore_ok = read_arvore_ok();
   rpg_ok = read_rpg_ok(); // !digitalRead(IN_RPG_OK);
   will_ok = read_will_ok();
   armadilha_ok = !digitalRead(IN_ARMADILHA_OK);
@@ -314,7 +324,7 @@ boolean atualiza_status() {
 
   // botão de bypass não pode ser sinal elétrico; precisa ser um io separado, porque
   // senão eu desligo o módulo e ele para de funcionar pra passar o resultado
-  if (true || arvore_ligada) { arvore_ok = !digitalRead(IN_ARVORE_OK); } else { arvore_ok = false; }
+  if (true || arvore_ligada) { arvore_ok = read_arvore_ok(); } else { arvore_ok = false; }
   if (true || rpg_ligado) { rpg_ok = read_rpg_ok(); } else { rpg_ok = false; }
   if (true || will_ligado) {  will_ok = read_will_ok(); } else { will_ok = false; }
   if (true || armadilha_ligada) {
