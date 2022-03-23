@@ -257,7 +257,8 @@ void estagio_armadilha() {
 void estagio_final() {  
   estagio = ESTAGIO_FINAL;
   desliga_tomada_tv();
-  destrava_porta_armadilha();
+  // quando as bombas armam, a porta deve permanecer travada
+  trava_porta_armadilha();
   destrava_porta_armario();
   destrava_porta_principal();
   inicial_blink = true;  
@@ -489,6 +490,8 @@ void loop() {
         else {
           Serial.println("Armadilha OK + Porta ABERTA");
           armadilha_blink = true;
+          // liga a trava da armadilha quando as bombas são armadas
+          trava_porta_armadilha();
         }
       }
       else {
