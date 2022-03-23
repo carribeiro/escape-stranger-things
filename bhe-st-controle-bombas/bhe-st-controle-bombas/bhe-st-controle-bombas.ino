@@ -187,9 +187,16 @@ void loop() {
     
     old_bombas_ligadas = bombas_ligadas;
     old_bombas_armadas = bombas_armadas;
+    // codigo que testa as três
+    /*
     bombas_ligadas = bomba_01_on && bomba_02_on && bomba_03_on;
     bombas_armadas = bomba_01_set && bomba_02_set && bomba_03_set;
-  
+    */
+    
+    // codigo que passa com duas quaisquer
+    bombas_ligadas = (((bomba_01_on ? 1 : 0) + (bomba_02_on ? 1 : 0) + (bomba_03_on ? 1 : 0)) >= 2);
+    bombas_armadas = (((bomba_01_set ? 1 : 0) + (bomba_02_set ? 1 : 0) + (bomba_03_set ? 1 : 0)) >= 2);
+
     if (bombas_ligadas) {
       // usa dos dois sinais pra indicar bombas armadas
       // o sinal de bombas ligadas é um reed, pouco confiável
