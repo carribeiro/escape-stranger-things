@@ -4,19 +4,26 @@
 //
 // pins
 
+#include <FastLED.h>
+#define NUM_LEDS 4
+#define DATA_PIN 10
+CRGB leds[NUM_LEDS];
+
+// Definições modificadas: era 7, 10 e 13. Todos agora apontam pro mesmo pino pra permitir testar a FASTLED
+#define LED_RPG_OK             (7)
+#define LED_WILL_OK            (7)
+#define LED_ARMADILHA_OK       (7)
+
 #define IN_ARVORE_LIGADA       (2)
 #define IN_ARVORE_OK           (3)
 // #define LED_ARVORE_OK          (4)
 #define IN_RPG_LIGADO          (5)
 #define IN_RPG_OK              (6)
-#define LED_RPG_OK             (7)
 #define IN_WILL_LIGADO         (8)
 #define IN_WILL_OK             (9)
-#define LED_WILL_OK            (10)
 #define IN_ARMADILHA_LIGADA    (11)
 #define IN_ARMADILHA_OK        (12)
 #define IN_ARMADILHA_PORTA     (4)
-#define LED_ARMADILHA_OK       (13)
 #define RELE_LIGA_TV           (A0)
 #define RELE_PORTA_ARMADILHA   (A1)
 #define RELE_PORTA_ARMARIO     (A2)
@@ -374,6 +381,7 @@ void imprime_status() {
 }
 
 void setup() {
+  // inicialização normal
   Serial.begin(115200);
   Serial.println();
   Serial.println();
@@ -381,11 +389,24 @@ void setup() {
   Serial.println("BHESCAPE STRANGER THINGS");
   Serial.println("NOVO JOGO");
   reset_game();
+
 }
 
 void loop() {
   // Serial.println("LOOP");
   // Serial.println(analogRead(IN_RESTART_WILL));
+
+  // teste FASTLED
+  Serial.println("Configurando LEDs");
+  FastLED.addLeds<WS2811, DATA_PIN>(leds, NUM_LEDS);
+  delay(50);
+  leds[0] = CRGB::Red; 
+  leds[1] = CRGB::Green; 
+  leds[2] = CRGB::Blue; 
+  leds[3] = CRGB::White; 
+  Serial.println("apresentando LEDs");
+  FastLED.show(); 
+  delay(50);
 
   if (inicial_blink) {
     unsigned long blink_time;
