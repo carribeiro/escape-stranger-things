@@ -5,63 +5,68 @@
 // pins
 
 #include <FastLED.h>
-#define NUM_LEDS 4
-#define DATA_PIN 10
+#define NUM_LEDS 9
+#define LEDS_DATA_PIN 12
 CRGB leds[NUM_LEDS];
 
-// Definições modificadas: era 7, 10 e 13. Todos agora apontam pro mesmo pino pra permitir testar a FASTLED
-#define LED_RPG_OK             (7)
-#define LED_WILL_OK            (7)
-#define LED_ARMADILHA_OK       (7)
+// os LEDs ficam nessa ordem na fita endereçada. Não são os pinos, é o "index" do vetor de LEDs
+#define FL_ARVORE_OK          (0)
+#define FL_ARVORE_RESOLVIDO   (1)
+#define FL_RPG_OK             (2)
+#define FL_RPG_RESOLVIDO      (3)
+#define FL_BRASAO_OK          (4)
+#define FL_BRASAO_RESOLVIDO   (5)
+#define FL_BOMBAS_OK          (6)
+#define FL_BOMBAS_RESOLVIDO   (7)
+#define FL_JOGO_EM_ANDAMENTO  (8)
 
 #define IN_ARVORE_LIGADA       (2)
 #define IN_ARVORE_OK           (3)
-// #define LED_ARVORE_OK          (4)
-#define IN_RPG_LIGADO          (5)
-#define IN_RPG_OK              (6)
-#define IN_WILL_LIGADO         (8)
-#define IN_WILL_OK             (9)
-#define IN_ARMADILHA_LIGADA    (11)
-#define IN_ARMADILHA_OK        (12)
-#define IN_ARMADILHA_PORTA     (4)
+#define IN_RPG_LIGADO          (4)
+#define IN_RPG_OK              (5)
+#define IN_BRASAO_LIGADO       (6)
+#define IN_BRASAO_OK           (7)
+#define IN_BOMBAS_LIGADA       (8)
+#define IN_BOMBAS_OK           (9)
+#define IN_BOMBAS_PORTA        (10)
 #define RELE_LIGA_TV           (A0)
-#define RELE_PORTA_ARMADILHA   (A1)
+#define RELE_PORTA_BOMBAS      (A1)
 #define RELE_PORTA_ARMARIO     (A2)
 #define RELE_PORTA_PRINCIPAL   (A3)
 
 #define IN_RESTART_ARVORE      (A4)
 #define IN_RESTART_RPG         (A5)
-#define IN_RESTART_WILL        (A6)
-#define IN_RESTART_ARMADILHA   (A7)
+#define IN_RESTART_BRASAO      (A6)
+#define IN_RESTART_BOMBAS      (A7)
 
 boolean arvore_ligada = false;
 boolean rpg_ligado = false;
-boolean will_ligado = false;
-boolean armadilha_ligada = false;
+boolean brasao_ligado = false;
+boolean bombas_ligada = false;
 
 boolean arvore_ok = false;
 boolean rpg_ok = false;
-boolean will_ok = false;
-boolean armadilha_ok = false;
-boolean armadilha_porta = false;
+boolean brasao_ok = false;
+boolean bombas_ok = false;
+boolean bombas_porta = false;
 
 boolean arvore_resolvida = false;
 boolean rpg_resolvido = false;
-boolean will_resolvido = false;
-boolean armadilha_resolvida = false;
+boolean brasao_resolvido = false;
+boolean bombas_resolvida = false;
 
 #define ESTAGIO_INICIAL   (0)
 #define ESTAGIO_ARVORE    (1)
 #define ESTAGIO_RPG       (2)
-#define ESTAGIO_WILL      (3)
-#define ESTAGIO_ARMADILHA (4)
+#define ESTAGIO_BRASAO    (3)
+#define ESTAGIO_BOMBAS    (4)
 #define ESTAGIO_FINAL     (5)
-#define ESTAGIO_NENHUM   (-1)
+#define ESTAGIO_NENHUM    (-1)
 
 int estagio = ESTAGIO_NENHUM;
-boolean armadilha_blink = false;
+boolean bombas_blink = false;
 boolean inicial_blink = false;
-unsigned long hora_restart_armadilha = 0;
+unsigned long hora_restart_bombas = 0;
 
 boolean read_arvore_ok() {
   if (!digitalRead(IN_ARVORE_OK)) {
@@ -83,10 +88,10 @@ boolean read_rpg_ok() {
   return false;
 }
 
-boolean read_will_ok() {
-  if (!digitalRead(IN_WILL_OK)) {
+boolean read_brasao_ok() {
+  if (!digitalRead(IN_BRASAO_OK)) {
     delay(30);
-    if (!digitalRead(IN_WILL_OK)) {
+    if (!digitalRead(IN_BRASAO_OK)) {
       return true;
     }
   }
@@ -96,39 +101,35 @@ boolean read_will_ok() {
 void reset_game() {
 
   // configura pinos
-  pinMode(IN_ARVORE_LIGADA, INPUT); // pulldown?
+  pinMode(IN_ARVORE_LIGADA, INPUT); 
   pinMode(IN_ARVORE_OK, INPUT_PULLUP);
-  //pinMode(LED_ARVORE_OK, OUTPUT);
   pinMode(IN_RPG_LIGADO, INPUT);
   pinMode(IN_RPG_OK, INPUT_PULLUP);
-  pinMode(LED_RPG_OK, OUTPUT);
-  pinMode(IN_WILL_LIGADO, INPUT);
-  pinMode(IN_WILL_OK, INPUT_PULLUP);
-  pinMode(LED_WILL_OK, OUTPUT);
-  pinMode(IN_ARMADILHA_LIGADA, INPUT);
-  pinMode(IN_ARMADILHA_OK, INPUT_PULLUP);
-  pinMode(IN_ARMADILHA_PORTA, INPUT_PULLUP);
-  pinMode(LED_ARMADILHA_OK, OUTPUT);
+  pinMode(IN_BRASAO_LIGADO, INPUT);
+  pinMode(IN_BRASAO_OK, INPUT_PULLUP);
+  pinMode(IN_BOMBAS_LIGADA, INPUT);
+  pinMode(IN_BOMBAS_OK, INPUT_PULLUP);
+  pinMode(IN_BOMBAS_PORTA, INPUT_PULLUP);
   pinMode(RELE_LIGA_TV, OUTPUT);
-  pinMode(RELE_PORTA_ARMADILHA, OUTPUT);
+  pinMode(RELE_PORTA_BOMBAS, OUTPUT);
   pinMode(RELE_PORTA_ARMARIO, OUTPUT);
   pinMode(RELE_PORTA_PRINCIPAL, OUTPUT);
   pinMode(IN_RESTART_ARVORE, INPUT_PULLUP);
   pinMode(IN_RESTART_RPG, INPUT_PULLUP);
-  pinMode(IN_RESTART_WILL, INPUT_PULLUP);
-  pinMode(IN_RESTART_ARMADILHA, INPUT_PULLUP);
+  pinMode(IN_RESTART_BRASAO, INPUT_PULLUP);
+  pinMode(IN_RESTART_BOMBAS, INPUT_PULLUP);
 
   // zera variáveis de controle
   arvore_ligada = digitalRead(IN_ARVORE_LIGADA);  
   rpg_ligado = digitalRead(IN_RPG_LIGADO);  
-  will_ligado = digitalRead(IN_WILL_LIGADO);  
-  armadilha_ligada = digitalRead(IN_ARMADILHA_LIGADA);  
+  brasao_ligado = digitalRead(IN_BRASAO_LIGADO);  
+  bombas_ligada = digitalRead(IN_BOMBAS_LIGADA);  
 
   arvore_ok = read_arvore_ok();
   rpg_ok = read_rpg_ok(); // !digitalRead(IN_RPG_OK);
-  will_ok = read_will_ok();
-  armadilha_ok = !digitalRead(IN_ARMADILHA_OK);
-  armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
+  brasao_ok = read_brasao_ok();
+  bombas_ok = !digitalRead(IN_BOMBAS_OK);
+  bombas_porta = !digitalRead(IN_BOMBAS_PORTA);
 
   estagio_inicial();
 }
@@ -138,11 +139,11 @@ void estagio_inicial() {
 
   arvore_resolvida = false;  
   rpg_resolvido = false;  
-  will_resolvido = false;  
-  armadilha_resolvida = false;  
+  brasao_resolvido = false;  
+  bombas_resolvida = false;  
 
   desliga_tomada_tv();
-  destrava_porta_armadilha();
+  destrava_porta_bombas();
   destrava_porta_armario();
   destrava_porta_principal();
 
@@ -169,94 +170,115 @@ void reset_rpg() {
 }
 */
 
-void trava_porta_armadilha() {
+void trava_porta_bombas() {
   Serial.println("Trava porta da armadilha");
   rpg_resolvido = false;
-  digitalWrite(RELE_PORTA_ARMADILHA, LOW);
+  digitalWrite(RELE_PORTA_BOMBAS, LOW);
 }
 
-void destrava_porta_armadilha() {
+void destrava_porta_bombas() {
   Serial.println("Destrava porta da armadilha");
   rpg_resolvido = true;
-  digitalWrite(RELE_PORTA_ARMADILHA, HIGH);
+  digitalWrite(RELE_PORTA_BOMBAS, HIGH);
 }
 
 void trava_porta_armario() {
   Serial.println("Trava porta do armário");
-  will_resolvido = false;
+  brasao_resolvido = false;
   digitalWrite(RELE_PORTA_ARMARIO, LOW);
 }
 
 void destrava_porta_armario() {
   Serial.println("Destrava porta do armário");
-  will_resolvido = true;
+  brasao_resolvido = true;
   digitalWrite(RELE_PORTA_ARMARIO, HIGH);
 }
 
 void trava_porta_principal() {
   Serial.println("Trava porta principal");
-  armadilha_resolvida = false;
+  bombas_resolvida = false;
   digitalWrite(RELE_PORTA_PRINCIPAL, LOW);
 }
 
 void destrava_porta_principal() {
   Serial.println("Destrava porta principal");
-  armadilha_resolvida = true;
+  bombas_resolvida = true;
   digitalWrite(RELE_PORTA_PRINCIPAL, HIGH);
 }
 
 void estagio_arvore() {
   inicial_blink = false;  
+  /*
   digitalWrite(LED_RPG_OK, rpg_ok);  
-  digitalWrite(LED_WILL_OK, will_ok);  
-  digitalWrite(LED_ARMADILHA_OK, LOW);  
+  digitalWrite(LED_BRASAO_OK, brasao_ok);    
+  digitalWrite(LED_BOMBAS_OK, LOW);  
+  */
+  leds[FL_RPG_OK] = rpg_ok ? CRGB::Green : CRGB::Black;
+  leds[FL_BRASAO_OK] = brasao_ok ? CRGB::Green : CRGB::Black;
+  leds[FL_BOMBAS_OK] = CRGB::Black;
 
   estagio = ESTAGIO_ARVORE;
   Serial.println("Estágio ARVORE");
   desliga_tomada_tv();
-  trava_porta_armadilha();
+  trava_porta_bombas();
   trava_porta_armario();
   trava_porta_principal();
 }
 
 void estagio_rpg() {
   inicial_blink = false;  
+  /*
   digitalWrite(LED_RPG_OK, rpg_ok);  
-  digitalWrite(LED_WILL_OK, will_ok);  
-  digitalWrite(LED_ARMADILHA_OK, LOW);  
+  digitalWrite(LED_BRASAO_OK, brasao_ok);  
+  digitalWrite(LED_BOMBAS_OK, LOW);  
+  */
+  leds[FL_RPG_OK] = rpg_ok ? CRGB::Green : CRGB::Black;
+  leds[FL_BRASAO_OK] = brasao_ok ? CRGB::Green : CRGB::Black;
+  leds[FL_BOMBAS_OK] = CRGB::Black;
 
   estagio = ESTAGIO_RPG;
   Serial.println("Estágio RPG");
   liga_tomada_tv();
-  trava_porta_armadilha();
+  trava_porta_bombas();
   trava_porta_armario();
   trava_porta_principal();
 }
 
 void estagio_will() {
   inicial_blink = false;  
+  /*
   digitalWrite(LED_RPG_OK, rpg_ok);  
-  digitalWrite(LED_WILL_OK, will_ok);  
-  digitalWrite(LED_ARMADILHA_OK, LOW);  
+  digitalWrite(LED_BRASAO_OK, brasao_ok);  
+  digitalWrite(LED_BOMBAS_OK, LOW);  
+  */
+  leds[FL_RPG_OK] = rpg_ok ? CRGB::Green : CRGB::Black;
+  leds[FL_BRASAO_OK] = brasao_ok ? CRGB::Green : CRGB::Black;
+  leds[FL_BOMBAS_OK] = CRGB::Black;
 
-  estagio = ESTAGIO_WILL;
-  Serial.println("Estágio WILL");
+  estagio = ESTAGIO_BRASAO;
+  Serial.println("Estágio BRASAO");
   liga_tomada_tv();
-  destrava_porta_armadilha();
+  destrava_porta_bombas();
   trava_porta_armario();
   trava_porta_principal();
 }
 
-void estagio_armadilha() {
+void estagio_bombas() {
   inicial_blink = false;  
+  /*
   digitalWrite(LED_RPG_OK, rpg_ok);  
-  digitalWrite(LED_WILL_OK, will_ok);  
-  digitalWrite(LED_ARMADILHA_OK, LOW);  
+  digitalWrite(LED_BRASAO_OK, brasao_ok);  
+  digitalWrite(LED_BOMBAS_OK, LOW);  
+  */
+  leds[FL_RPG_OK] = rpg_ok ? CRGB::Green : CRGB::Black;
+  leds[FL_BRASAO_OK] = brasao_ok ? CRGB::Green : CRGB::Black;
+  leds[FL_BOMBAS_OK] = CRGB::Black;
+  FastLED.show();
 
-  estagio = ESTAGIO_ARMADILHA;
-  Serial.println("Estágio ARMADILHA");
+  estagio = ESTAGIO_BOMBAS;
+  Serial.println("Estágio BOMBAS");
   liga_tomada_tv();
-  destrava_porta_armadilha();
+  destrava_porta_bombas();
   destrava_porta_armario();
   trava_porta_principal();
 }
@@ -265,29 +287,21 @@ void estagio_final() {
   estagio = ESTAGIO_FINAL;
   desliga_tomada_tv();
   // quando as bombas armam, a porta deve permanecer travada
-  trava_porta_armadilha();
+  trava_porta_bombas();
   destrava_porta_armario();
   destrava_porta_principal();
   inicial_blink = true;  
 }
 
 void test_game() {
-  // digitalWrite(LED_ARVORE_OK, HIGH); delay(500);
-  // digitalWrite(LED_ARVORE_OK, LOW); delay(500);
-  digitalWrite(LED_RPG_OK, HIGH); delay(500);
-  digitalWrite(LED_RPG_OK, LOW); delay(500);
-  digitalWrite(LED_WILL_OK, HIGH); delay(500);
-    digitalWrite(LED_WILL_OK, LOW); delay(500);
-  digitalWrite(LED_ARMADILHA_OK, HIGH); delay(500);
-  digitalWrite(LED_ARMADILHA_OK, LOW); delay(500);
   delay(2000);
   liga_tomada_tv(); delay(500);
-  trava_porta_armadilha(); delay(500);
+  trava_porta_bombas(); delay(500);
   trava_porta_armario(); delay(500);
   trava_porta_principal(); delay(500);
   delay(2000);
   desliga_tomada_tv(); delay(500);
-  destrava_porta_armadilha(); delay(500);
+  destrava_porta_bombas(); delay(500);
   destrava_porta_armario(); delay(500);
   destrava_porta_principal(); delay(500);
   delay(2000);
@@ -296,61 +310,61 @@ void test_game() {
 
 boolean old_arvore_ok = false;
 boolean old_rpg_ok = false;
-boolean old_will_ok = false;
-boolean old_armadilha_ok = false;
-boolean old_armadilha_porta = false;
+boolean old_brasao_ok = false;
+boolean old_bombas_ok = false;
+boolean old_bombas_porta = false;
 
 boolean old_arvore_ligada = false;
 boolean old_rpg_ligado = false;
-boolean old_will_ligado = false;
-boolean old_armadilha_ligada = false;
+boolean old_brasao_ligado = false;
+boolean old_bombas_ligada = false;
 
 boolean arvore_restart_pressed = false;
 boolean rpg_restart_pressed = false;
-boolean will_restart_pressed = false;
-boolean armadilha_restart_pressed = false;
+boolean brasao_restart_pressed = false;
+boolean bombas_restart_pressed = false;
 
 boolean atualiza_status() {
 
   // save old status
   old_arvore_ligada = arvore_ligada;
   old_rpg_ligado = rpg_ligado;
-  old_will_ligado = will_ligado;
-  old_armadilha_ligada = armadilha_ligada;
+  old_brasao_ligado = brasao_ligado;
+  old_bombas_ligada = bombas_ligada;
 
   old_arvore_ok = arvore_ok;
   old_rpg_ok = rpg_ok;
-  old_will_ok = will_ok;
-  old_armadilha_ok = armadilha_ok;
-  old_armadilha_porta = armadilha_porta;
+  old_brasao_ok = brasao_ok;
+  old_bombas_ok = bombas_ok;
+  old_bombas_porta = bombas_porta;
 
   // read new status; signals that are true when LOW are inverted on read to simplify logic
   arvore_ligada = digitalRead(IN_ARVORE_LIGADA);  
   rpg_ligado = digitalRead(IN_RPG_LIGADO);  
-  will_ligado = digitalRead(IN_WILL_LIGADO);  
-  armadilha_ligada = digitalRead(IN_ARMADILHA_LIGADA);  
+  brasao_ligado = digitalRead(IN_BRASAO_LIGADO);  
+  bombas_ligada = digitalRead(IN_BOMBAS_LIGADA);  
 
   // botão de bypass não pode ser sinal elétrico; precisa ser um io separado, porque
   // senão eu desligo o módulo e ele para de funcionar pra passar o resultado
   if (true || arvore_ligada) { arvore_ok = read_arvore_ok(); } else { arvore_ok = false; }
   if (true || rpg_ligado) { rpg_ok = read_rpg_ok(); } else { rpg_ok = false; }
-  if (true || will_ligado) {  will_ok = read_will_ok(); } else { will_ok = false; }
-  if (true || armadilha_ligada) {
-    armadilha_ok = !digitalRead(IN_ARMADILHA_OK);
-    armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
+  if (true || brasao_ligado) {  brasao_ok = read_brasao_ok(); } else { brasao_ok = false; }
+  if (true || bombas_ligada) {
+    bombas_ok = !digitalRead(IN_BOMBAS_OK);
+    bombas_porta = !digitalRead(IN_BOMBAS_PORTA);
   }
   else {
-    armadilha_ok = false;
-    armadilha_porta = !digitalRead(IN_ARMADILHA_PORTA);
+    bombas_ok = false;
+    bombas_porta = !digitalRead(IN_BOMBAS_PORTA);
   }
 
   // returns true if anything changed
   return (
     (old_arvore_ok != arvore_ok) ||
     (old_rpg_ok != rpg_ok) ||
-    (old_will_ok != will_ok) ||
-    (old_armadilha_ok != armadilha_ok) ||
-    (old_armadilha_porta != armadilha_porta)
+    (old_brasao_ok != brasao_ok) ||
+    (old_bombas_ok != bombas_ok) ||
+    (old_bombas_porta != bombas_porta)
     );
 }
 
@@ -369,15 +383,15 @@ void imprime_status() {
   Serial.println(rpg_resolvido ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 
   Serial.print("Will: ");
-  Serial.print(will_ligado ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" ");
-  Serial.print(will_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" ");
-  Serial.println(will_resolvido ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
+  Serial.print(brasao_ligado ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" ");
+  Serial.print(brasao_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" ");
+  Serial.println(brasao_resolvido ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 
   Serial.print("Armadilha: ");
-  Serial.print(armadilha_ligada ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" ");
-  Serial.print(armadilha_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" ");
-  Serial.print(armadilha_porta ? "[FECHADA]" : "[ABERTA]"); Serial.print(" ");
-  Serial.println(armadilha_resolvida ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
+  Serial.print(bombas_ligada ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" ");
+  Serial.print(bombas_ok ? "[OK]" : "[NÃO OK]"); Serial.print(" ");
+  Serial.print(bombas_porta ? "[FECHADA]" : "[ABERTA]"); Serial.print(" ");
+  Serial.println(bombas_resolvida ? "[RESOLVIDO]" : "[NÃO RESOLVIDO]");
 }
 
 void setup() {
@@ -390,48 +404,68 @@ void setup() {
   Serial.println("NOVO JOGO");
   reset_game();
 
+  // teste FASTLED
+  Serial.println("Configurando LEDs");
+  FastLED.addLeds<WS2811, LEDS_DATA_PIN>(leds, NUM_LEDS);
+  delay(50);
+  delay(300);
+
+  randomSeed(analogRead(0));
+
+  leds[FL_ARVORE_OK] = CRGB::Red;
+  leds[FL_RPG_OK] = CRGB::Blue;
+  leds[FL_BRASAO_OK] = CRGB::Blue;
+  leds[FL_BOMBAS_OK] = CRGB::Blue;
+  leds[FL_ARVORE_RESOLVIDO] = CRGB::Blue;
+  leds[FL_RPG_RESOLVIDO] = CRGB::Blue;
+  leds[FL_BRASAO_RESOLVIDO] = CRGB::Blue;
+  leds[FL_BOMBAS_RESOLVIDO] = CRGB::Blue;
+  leds[FL_JOGO_EM_ANDAMENTO] = CRGB::Blue;
+
 }
 
 void loop() {
   // Serial.println("LOOP");
-  // Serial.println(analogRead(IN_RESTART_WILL));
+  // Serial.println(analogRead(IN_RESTART_BRASAO));
+  
+  // leds[FL_ARVORE_OK] = random(16777215);
+  // leds[FL_ARVORE_OK] = (random(192)*256*256) + (random(192)*256) + (random(128));
+  // leds[FL_ARVORE_OK] += 71;
+  // Serial.println("apresentando LEDs");
+  // Serial.println(leds[FL_ARVORE_OK]);
+  // FastLED.show(); 
+  // delay(50);
 
-  // teste FASTLED
-  Serial.println("Configurando LEDs");
-  FastLED.addLeds<WS2811, DATA_PIN>(leds, NUM_LEDS);
-  delay(50);
-  leds[0] = CRGB::Red; 
-  leds[1] = CRGB::Green; 
-  leds[2] = CRGB::Blue; 
-  leds[3] = CRGB::White; 
-  Serial.println("apresentando LEDs");
-  FastLED.show(); 
-  delay(50);
+  // delay(300);
+  // return; // pula o resto do código durante essa fase de teste do loop,
 
   if (inicial_blink) {
     unsigned long blink_time;
     blink_time = millis()/1000;
     if ((blink_time % 2) == 0) {
-      digitalWrite(LED_RPG_OK, HIGH);  
-      digitalWrite(LED_WILL_OK, HIGH);  
-      digitalWrite(LED_ARMADILHA_OK, HIGH);  
+      leds[FL_ARVORE_OK] = CRGB::Yellow;
+      leds[FL_RPG_OK] = CRGB::Yellow;
+      leds[FL_BRASAO_OK] = CRGB::Yellow;
+      leds[FL_BOMBAS_OK] = CRGB::Yellow;
     }
     else {
-      digitalWrite(LED_RPG_OK, LOW);  
-      digitalWrite(LED_WILL_OK, LOW);  
-      digitalWrite(LED_ARMADILHA_OK, LOW);  
+      leds[FL_ARVORE_OK] = CRGB::Black;
+      leds[FL_RPG_OK] = CRGB::Black;
+      leds[FL_BRASAO_OK] = CRGB::Black;
+      leds[FL_BOMBAS_OK] = CRGB::Black;
     }
   }
-  else if (armadilha_blink) {
+  else if (bombas_blink) {
     unsigned long blink_time;
     blink_time = millis()/1000;
     if ((blink_time % 2) == 0) {
-      digitalWrite(LED_ARMADILHA_OK, HIGH);  
+      leds[FL_BOMBAS_OK] = CRGB::Red;
     }
     else {
-      digitalWrite(LED_ARMADILHA_OK, LOW);  
+      leds[FL_BOMBAS_OK] = CRGB::Black;
     }
   }
+  FastLED.show(); 
 
   boolean status_changed;
 
@@ -445,7 +479,8 @@ void loop() {
     if (arvore_ok) {
       Serial.println("Árvore OK");
       if (estagio == ESTAGIO_ARVORE) {
-        // digitalWrite(LED_ARVORE_OK, HIGH);
+        leds[FL_ARVORE_OK] = CRGB::Red;
+        FastLED.show(); 
         Serial.println("Árvore RESOLVIDA");
         estagio_rpg();
       }
@@ -455,7 +490,8 @@ void loop() {
     }
     else {
       Serial.println("Árvore NÃO OK");
-      // digitalWrite(LED_ARVORE_OK, LOW);
+      leds[FL_ARVORE_OK] = CRGB::Black;
+      FastLED.show(); 
     }
   }
 
@@ -464,7 +500,8 @@ void loop() {
     if (rpg_ok) {
       Serial.println("RPG OK");
       if (estagio == ESTAGIO_RPG) {
-        digitalWrite(LED_RPG_OK, HIGH);
+        leds[FL_RPG_OK] = CRGB::Red;
+        FastLED.show(); 
         Serial.println("RPG RESOLVIDO");
         estagio_will();
       }
@@ -474,18 +511,19 @@ void loop() {
     }
     else {
       Serial.println("RPG NÃO OK");
-      digitalWrite(LED_RPG_OK, LOW);
+    leds[FL_RPG_OK, CRGB::Black];
+    FastLED.show(); 
     }
   }
 
-  // WILL
-  if (will_ok != old_will_ok) {
-    if (will_ok) {
+  // BRASAO
+  if (brasao_ok != old_brasao_ok) {
+    if (brasao_ok) {
       Serial.println("Will OK");
-      if (estagio == ESTAGIO_WILL) {
-        digitalWrite(LED_WILL_OK, HIGH);
+      if (estagio == ESTAGIO_BRASAO) {
+        leds[FL_BRASAO_OK] = CRGB::Red;
         Serial.println("Will RESOLVIDO");
-        estagio_armadilha();
+        estagio_bombas();
       }
       else {
         Serial.println("Will ok descartado (estágio errado)");
@@ -493,26 +531,27 @@ void loop() {
     }
     else {
       Serial.println("Will NÃO OK");
-      digitalWrite(LED_WILL_OK, LOW);
+      leds[FL_BRASAO_OK, CRGB::Black];  
+      FastLED.show(); 
     }
   }
 
-  // ARMADILHA
-  if ((armadilha_ok != old_armadilha_ok) || (armadilha_porta != old_armadilha_porta)) {
-    if (armadilha_ok) {
-      if (estagio == ESTAGIO_ARMADILHA) {
-        if (armadilha_porta) {
-          armadilha_blink = false;
+  // BOMBAS
+  if ((bombas_ok != old_bombas_ok) || (bombas_porta != old_bombas_porta)) {
+    if (bombas_ok) {
+      if (estagio == ESTAGIO_BOMBAS) {
+        if (bombas_porta) {
+          bombas_blink = false;
           Serial.println("Armadilha OK + Porta FECHADA");
-          digitalWrite(LED_ARMADILHA_OK, HIGH);
-          Serial.println("ARMADILHA RESOLVIDA");
+          leds[FL_BOMBAS_OK] = CRGB::Red; 
+          Serial.println("BOMBAS RESOLVIDA");
           estagio_final();
         }
         else {
           Serial.println("Armadilha OK + Porta ABERTA");
-          armadilha_blink = true;
+          bombas_blink = true;
           // liga a trava da armadilha quando as bombas são armadas
-          trava_porta_armadilha();
+          trava_porta_bombas();
         }
       }
       else {
@@ -521,8 +560,8 @@ void loop() {
     }
     else {
       Serial.println("Armadilha NÃO OK");
-      digitalWrite(LED_ARMADILHA_OK, LOW);
-      armadilha_blink = false;
+      leds[FL_BOMBAS_OK] = CRGB::Black;  
+      bombas_blink = false;
     }
   }
 
@@ -564,49 +603,49 @@ void loop() {
     }
   }
 
-  if (analogRead(IN_RESTART_WILL) < 120) {
+  if (analogRead(IN_RESTART_BRASAO) < 120) {
     // algoritmo simples de debounce
     delay(50);
-    if (analogRead(IN_RESTART_WILL) < 120) {
+    if (analogRead(IN_RESTART_BRASAO) < 120) {
       Serial.println();
-      Serial.println("RESTART WILL PRESSIONADO");
-      will_restart_pressed = true;
+      Serial.println("RESTART BRASAO PRESSIONADO");
+      brasao_restart_pressed = true;
     }
   }
-  if (will_restart_pressed && (analogRead(IN_RESTART_WILL) >= 120)) {
+  if (brasao_restart_pressed && (analogRead(IN_RESTART_BRASAO) >= 120)) {
     // algoritmo simples de debounce
     delay(50);
-    if (analogRead(IN_RESTART_WILL) >= 120) {
-      Serial.println("RESTART WILL SOLTO");
-      will_restart_pressed = false;
+    if (analogRead(IN_RESTART_BRASAO) >= 120) {
+      Serial.println("RESTART BRASAO SOLTO");
+      brasao_restart_pressed = false;
       estagio_will();
     }
   }
 
-  if (!armadilha_restart_pressed && (analogRead(IN_RESTART_ARMADILHA) < 120)) {
+  if (!bombas_restart_pressed && (analogRead(IN_RESTART_BOMBAS) < 120)) {
     // algoritmo simples de debounce
     delay(50);
-    if (analogRead(IN_RESTART_ARMADILHA) < 120) {
+    if (analogRead(IN_RESTART_BOMBAS) < 120) {
       Serial.println();
-      Serial.println("RESTART ARMADILHA PRESSIONADO");
-      armadilha_restart_pressed = true;
-      hora_restart_armadilha = millis();
+      Serial.println("RESTART BOMBAS PRESSIONADO");
+      bombas_restart_pressed = true;
+      hora_restart_bombas = millis();
     }
   } 
-  else if (armadilha_restart_pressed && (analogRead(IN_RESTART_ARMADILHA) >= 120)) {
+  else if (bombas_restart_pressed && (analogRead(IN_RESTART_BOMBAS) >= 120)) {
     // algoritmo simples de debounce
     delay(50);
-    if (analogRead(IN_RESTART_ARMADILHA) >= 120) {
-      Serial.println("RESTART ARMADILHA SOLTO");
-      armadilha_restart_pressed = false;
-      if ((millis() - hora_restart_armadilha) <= 2000) {
-        Serial.println("RESTART ARMADILHA < 2000");
-        hora_restart_armadilha = 0;
-        estagio_armadilha();
+    if (analogRead(IN_RESTART_BOMBAS) >= 120) {
+      Serial.println("RESTART BOMBAS SOLTO");
+      bombas_restart_pressed = false;
+      if ((millis() - hora_restart_bombas) <= 2000) {
+        Serial.println("RESTART BOMBAS < 2000");
+        hora_restart_bombas = 0;
+        estagio_bombas();
       }
       else {
-        Serial.println("RESTART ARMADILHA > 2000");
-        hora_restart_armadilha = 0;
+        Serial.println("RESTART BOMBAS > 2000");
+        hora_restart_bombas = 0;
         estagio_final();
       }
     }
@@ -635,11 +674,11 @@ void loop() {
       else if (input.equalsIgnoreCase("FECHAR SALA")) {
         trava_porta_principal();
       }
-      else if (input.equalsIgnoreCase("ABRIR ARMADILHA")) {
-        destrava_porta_armadilha();
+      else if (input.equalsIgnoreCase("ABRIR BOMBAS")) {
+        destrava_porta_bombas();
       }
-      else if (input.equalsIgnoreCase("FECHAR ARMADILHA")) {
-        trava_porta_armadilha();
+      else if (input.equalsIgnoreCase("FECHAR BOMBAS")) {
+        trava_porta_bombas();
       }
       else if (input.equalsIgnoreCase("ABRIR ARMARIO")) {
         destrava_porta_armario();
