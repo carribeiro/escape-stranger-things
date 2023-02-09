@@ -153,13 +153,13 @@ void estagio_inicial() {
 void desliga_tomada_tv() {
   Serial.println("Desliga tomada da TV");
   arvore_resolvida = false;
-  digitalWrite(RELE_LIGA_TV, LOW);
+  digitalWrite(RELE_LIGA_TV, HIGH); // sinal invertid o
 }
 
 void liga_tomada_tv() {
   Serial.println("Liga tomada da TV");
   arvore_resolvida = true;
-  digitalWrite(RELE_LIGA_TV, HIGH);
+  digitalWrite(RELE_LIGA_TV, LOW); // sinal invertido
 }
 
 /*
@@ -173,13 +173,13 @@ void reset_rpg() {
 void trava_porta_bombas() {
   Serial.println("Trava porta da armadilha");
   rpg_resolvido = false;
-  digitalWrite(RELE_PORTA_BOMBAS, LOW);
+  digitalWrite(RELE_PORTA_BOMBAS, LOW);  // rele invertido
 }
 
 void destrava_porta_bombas() {
   Serial.println("Destrava porta da armadilha");
   rpg_resolvido = true;
-  digitalWrite(RELE_PORTA_BOMBAS, HIGH);
+  digitalWrite(RELE_PORTA_BOMBAS, HIGH); // rele invertido
 }
 
 void trava_porta_armario() {
@@ -371,6 +371,7 @@ boolean atualiza_status() {
 void imprime_status() {
   Serial.println();
   Serial.print("STATUS ("); Serial.print(long(millis()/1000)); Serial.println(")");
+  Serial.print("Estagio:"); Serial.print(int(estagio)); Serial.println("");
 
   Serial.print("Árvore: ");
   Serial.print(arvore_ligada ? "[LIGADO]" : "[DESLIGADO]"); Serial.print(" ");
