@@ -9,6 +9,12 @@
 #define LEDS_DATA_PIN 12
 CRGB leds[NUM_LEDS];
 
+#define COR_VERDE    (CRGB::Green)
+#define COR_AZUL     (CRGB::Blue)
+#define COR_VERMELHO (CRGB::Red)
+#define COR_AMARELO  (CRGB::Yellow)
+#define COR_APAGADO  (CRGB::Black)
+
 // os LEDs ficam nessa ordem na fita endereçada. Não são os pinos, é o "index" do vetor de LEDs
 #define FL_ARVORE_OK          (0)
 #define FL_ARVORE_RESOLVIDO   (1)
@@ -214,9 +220,9 @@ void estagio_arvore() {
   digitalWrite(LED_BRASAO_OK, brasao_ok);    
   digitalWrite(LED_BOMBAS_OK, LOW);  
   */
-  leds[FL_RPG_OK] = rpg_ok ? CRGB::Green : CRGB::Black;
-  leds[FL_BRASAO_OK] = brasao_ok ? CRGB::Green : CRGB::Black;
-  leds[FL_BOMBAS_OK] = CRGB::Black;
+  leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_BOMBAS_OK] = COR_APAGADO;
 
   estagio = ESTAGIO_ARVORE;
   Serial.println("Estágio ARVORE");
@@ -233,9 +239,10 @@ void estagio_rpg() {
   digitalWrite(LED_BRASAO_OK, brasao_ok);  
   digitalWrite(LED_BOMBAS_OK, LOW);  
   */
-  leds[FL_RPG_OK] = rpg_ok ? CRGB::Green : CRGB::Black;
-  leds[FL_BRASAO_OK] = brasao_ok ? CRGB::Green : CRGB::Black;
-  leds[FL_BOMBAS_OK] = CRGB::Black;
+  leds[FL_ARVORE_OK] = arvore_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_VERDE;
+  leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_VERDE;
+  leds[FL_BOMBAS_OK] = COR_VERDE;
 
   estagio = ESTAGIO_RPG;
   Serial.println("Estágio RPG");
@@ -252,9 +259,10 @@ void estagio_will() {
   digitalWrite(LED_BRASAO_OK, brasao_ok);  
   digitalWrite(LED_BOMBAS_OK, LOW);  
   */
-  leds[FL_RPG_OK] = rpg_ok ? CRGB::Green : CRGB::Black;
-  leds[FL_BRASAO_OK] = brasao_ok ? CRGB::Green : CRGB::Black;
-  leds[FL_BOMBAS_OK] = CRGB::Black;
+  leds[FL_ARVORE_OK] = arvore_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_BOMBAS_OK] = COR_APAGADO;
 
   estagio = ESTAGIO_BRASAO;
   Serial.println("Estágio BRASAO");
@@ -271,9 +279,10 @@ void estagio_bombas() {
   digitalWrite(LED_BRASAO_OK, brasao_ok);  
   digitalWrite(LED_BOMBAS_OK, LOW);  
   */
-  leds[FL_RPG_OK] = rpg_ok ? CRGB::Green : CRGB::Black;
-  leds[FL_BRASAO_OK] = brasao_ok ? CRGB::Green : CRGB::Black;
-  leds[FL_BOMBAS_OK] = CRGB::Black;
+  leds[FL_ARVORE_OK] = arvore_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_BOMBAS_OK] = COR_APAGADO;
   FastLED.show();
 
   estagio = ESTAGIO_BOMBAS;
@@ -414,15 +423,15 @@ void setup() {
 
   randomSeed(analogRead(0));
 
-  leds[FL_ARVORE_OK] = CRGB::Red;
-  leds[FL_RPG_OK] = CRGB::Blue;
-  leds[FL_BRASAO_OK] = CRGB::Blue;
-  leds[FL_BOMBAS_OK] = CRGB::Blue;
-  leds[FL_ARVORE_RESOLVIDO] = CRGB::Blue;
-  leds[FL_RPG_RESOLVIDO] = CRGB::Blue;
-  leds[FL_BRASAO_RESOLVIDO] = CRGB::Blue;
-  leds[FL_BOMBAS_RESOLVIDO] = CRGB::Blue;
-  leds[FL_JOGO_EM_ANDAMENTO] = CRGB::Blue;
+  leds[FL_ARVORE_OK] = COR_AZUL;
+  leds[FL_RPG_OK] = COR_AZUL;
+  leds[FL_BRASAO_OK] = COR_AZUL;
+  leds[FL_BOMBAS_OK] = COR_AZUL;
+  leds[FL_ARVORE_RESOLVIDO] = COR_AZUL;
+  leds[FL_RPG_RESOLVIDO] = COR_AZUL;
+  leds[FL_BRASAO_RESOLVIDO] = COR_AZUL;
+  leds[FL_BOMBAS_RESOLVIDO] = COR_AZUL;
+  leds[FL_JOGO_EM_ANDAMENTO] = COR_AZUL;
 
 }
 
@@ -445,26 +454,26 @@ void loop() {
     unsigned long blink_time;
     blink_time = millis()/1000;
     if ((blink_time % 2) == 0) {
-      leds[FL_ARVORE_OK] = CRGB::Yellow;
-      leds[FL_RPG_OK] = CRGB::Yellow;
-      leds[FL_BRASAO_OK] = CRGB::Yellow;
-      leds[FL_BOMBAS_OK] = CRGB::Yellow;
+      leds[FL_ARVORE_OK] = COR_AMARELO;
+      leds[FL_RPG_OK] = COR_AMARELO;
+      leds[FL_BRASAO_OK] = COR_AMARELO;
+      leds[FL_BOMBAS_OK] = COR_AMARELO;
     }
     else {
-      leds[FL_ARVORE_OK] = CRGB::Black;
-      leds[FL_RPG_OK] = CRGB::Black;
-      leds[FL_BRASAO_OK] = CRGB::Black;
-      leds[FL_BOMBAS_OK] = CRGB::Black;
+      leds[FL_ARVORE_OK] = COR_APAGADO;
+      leds[FL_RPG_OK] = COR_APAGADO;
+      leds[FL_BRASAO_OK] = COR_APAGADO;
+      leds[FL_BOMBAS_OK] = COR_APAGADO;
     }
   }
   else if (bombas_blink) {
     unsigned long blink_time;
     blink_time = millis()/1000;
     if ((blink_time % 2) == 0) {
-      leds[FL_BOMBAS_OK] = CRGB::Red;
+      leds[FL_BOMBAS_OK] = COR_VERMELHO;
     }
     else {
-      leds[FL_BOMBAS_OK] = CRGB::Black;
+      leds[FL_BOMBAS_OK] = COR_APAGADO;
     }
   }
   FastLED.show(); 
@@ -481,7 +490,7 @@ void loop() {
     if (arvore_ok) {
       Serial.println("Árvore OK");
       if (estagio == ESTAGIO_ARVORE) {
-        leds[FL_ARVORE_OK] = CRGB::Red;
+        leds[FL_ARVORE_OK] = COR_VERMELHO;
         FastLED.show(); 
         Serial.println("Árvore RESOLVIDA");
         estagio_rpg();
@@ -492,7 +501,7 @@ void loop() {
     }
     else {
       Serial.println("Árvore NÃO OK");
-      leds[FL_ARVORE_OK] = CRGB::Black;
+      leds[FL_ARVORE_OK] = COR_APAGADO;
       FastLED.show(); 
     }
   }
@@ -502,7 +511,7 @@ void loop() {
     if (rpg_ok) {
       Serial.println("RPG OK");
       if (estagio == ESTAGIO_RPG) {
-        leds[FL_RPG_OK] = CRGB::Red;
+        leds[FL_RPG_OK] = COR_VERMELHO;
         FastLED.show(); 
         Serial.println("RPG RESOLVIDO");
         estagio_will();
@@ -513,7 +522,7 @@ void loop() {
     }
     else {
       Serial.println("RPG NÃO OK");
-    leds[FL_RPG_OK, CRGB::Black];
+    leds[FL_RPG_OK, COR_APAGADO];
     FastLED.show(); 
     }
   }
@@ -523,7 +532,7 @@ void loop() {
     if (brasao_ok) {
       Serial.println("Will OK");
       if (estagio == ESTAGIO_BRASAO) {
-        leds[FL_BRASAO_OK] = CRGB::Red;
+        leds[FL_BRASAO_OK] = COR_VERMELHO;
         Serial.println("Will RESOLVIDO");
         estagio_bombas();
       }
@@ -533,7 +542,7 @@ void loop() {
     }
     else {
       Serial.println("Will NÃO OK");
-      leds[FL_BRASAO_OK, CRGB::Black];  
+      leds[FL_BRASAO_OK, COR_VERMELHO];  
       FastLED.show(); 
     }
   }
@@ -545,7 +554,7 @@ void loop() {
         if (bombas_porta) {
           bombas_blink = false;
           Serial.println("Armadilha OK + Porta FECHADA");
-          leds[FL_BOMBAS_OK] = CRGB::Red; 
+          leds[FL_BOMBAS_OK] = COR_VERMELHO; 
           Serial.println("BOMBAS RESOLVIDA");
           estagio_final();
         }
@@ -562,7 +571,7 @@ void loop() {
     }
     else {
       Serial.println("Armadilha NÃO OK");
-      leds[FL_BOMBAS_OK] = CRGB::Black;  
+      leds[FL_BOMBAS_OK] = COR_APAGADO;  
       bombas_blink = false;
     }
   }
