@@ -255,8 +255,8 @@ void estagio_rpg() {
   inicial_blink = false;  
 
   leds[FL_ARVORE_OK] = arvore_ok ? COR_VERDE : COR_APAGADO;
-  leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_VERDE;
-  leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_VERDE;
+  leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_APAGADO;
+  leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_BOMBAS_OK] = COR_VERDE;
 
   // leds de status dos estágios do jogo
