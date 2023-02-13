@@ -154,7 +154,7 @@ void estagio_inicial() {
 void desliga_tomada_tv() {
   Serial.println("Desliga tomada da TV");
   arvore_resolvida = false;
-  digitalWrite(RELE_LIGA_TV, HIGH); // sinal invertid o
+  digitalWrite(RELE_LIGA_TV, HIGH); // sinal invertido
 }
 
 void liga_tomada_tv() {
