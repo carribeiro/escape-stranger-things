@@ -154,7 +154,18 @@ void estagio_inicial() {
   destrava_porta_armario();
   destrava_porta_principal();
 
+  leds[FL_ARVORE_OK] = COR_AZUL;
+  leds[FL_RPG_OK] = COR_AZUL;
+  leds[FL_BRASAO_OK] = COR_AZUL;
+  leds[FL_BOMBAS_OK] = COR_AZUL;
+  leds[FL_ARVORE_RESOLVIDO] = COR_AZUL;
+  leds[FL_RPG_RESOLVIDO] = COR_AZUL;
+  leds[FL_BRASAO_RESOLVIDO] = COR_AZUL;
+  leds[FL_BOMBAS_RESOLVIDO] = COR_AZUL;
+  leds[FL_JOGO_EM_ANDAMENTO] = COR_AZUL;
+
   inicial_blink = true;
+
 }
 
 void desliga_tomada_tv() {
@@ -224,6 +235,14 @@ void estagio_arvore() {
   leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_BOMBAS_OK] = COR_APAGADO;
 
+  // leds de status dos estágios do jogo
+  leds[FL_ARVORE_RESOLVIDO] = COR_AZUL;
+  leds[FL_RPG_RESOLVIDO] = COR_APAGADO;
+  leds[FL_BRASAO_RESOLVIDO] = COR_APAGADO;
+  leds[FL_BOMBAS_RESOLVIDO] = COR_APAGADO;
+  leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
+  FastLED.show();
+
   estagio = ESTAGIO_ARVORE;
   Serial.println("Estágio ARVORE");
   desliga_tomada_tv();
@@ -234,15 +253,19 @@ void estagio_arvore() {
 
 void estagio_rpg() {
   inicial_blink = false;  
-  /*
-  digitalWrite(LED_RPG_OK, rpg_ok);  
-  digitalWrite(LED_BRASAO_OK, brasao_ok);  
-  digitalWrite(LED_BOMBAS_OK, LOW);  
-  */
+
   leds[FL_ARVORE_OK] = arvore_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_VERDE;
   leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_VERDE;
   leds[FL_BOMBAS_OK] = COR_VERDE;
+
+  // leds de status dos estágios do jogo
+  leds[FL_ARVORE_RESOLVIDO] = COR_VERDE;
+  leds[FL_RPG_RESOLVIDO] = COR_AZUL;
+  leds[FL_BRASAO_RESOLVIDO] = COR_APAGADO;
+  leds[FL_BOMBAS_RESOLVIDO] = COR_APAGADO;
+  leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
+  FastLED.show();
 
   estagio = ESTAGIO_RPG;
   Serial.println("Estágio RPG");
@@ -254,15 +277,19 @@ void estagio_rpg() {
 
 void estagio_will() {
   inicial_blink = false;  
-  /*
-  digitalWrite(LED_RPG_OK, rpg_ok);  
-  digitalWrite(LED_BRASAO_OK, brasao_ok);  
-  digitalWrite(LED_BOMBAS_OK, LOW);  
-  */
+
   leds[FL_ARVORE_OK] = arvore_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_BOMBAS_OK] = COR_APAGADO;
+
+  // leds de status dos estágios do jogo
+  leds[FL_ARVORE_RESOLVIDO] = COR_VERDE;
+  leds[FL_RPG_RESOLVIDO] = COR_VERDE;
+  leds[FL_BRASAO_RESOLVIDO] = COR_AZUL;
+  leds[FL_BOMBAS_RESOLVIDO] = COR_APAGADO;
+  leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
+  FastLED.show();
 
   estagio = ESTAGIO_BRASAO;
   Serial.println("Estágio BRASAO");
@@ -283,6 +310,13 @@ void estagio_bombas() {
   leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_BOMBAS_OK] = COR_APAGADO;
+
+  // leds de status dos estágios do jogo
+  leds[FL_ARVORE_RESOLVIDO] = COR_VERDE;
+  leds[FL_RPG_RESOLVIDO] = COR_VERDE;
+  leds[FL_BRASAO_RESOLVIDO] = COR_VERDE;
+  leds[FL_BOMBAS_RESOLVIDO] = COR_AZUL;
+  leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
   FastLED.show();
 
   estagio = ESTAGIO_BOMBAS;
@@ -300,6 +334,15 @@ void estagio_final() {
   trava_porta_bombas();
   destrava_porta_armario();
   destrava_porta_principal();
+
+  // leds de status dos estágios do jogo
+  leds[FL_ARVORE_RESOLVIDO] = COR_AZUL;
+  leds[FL_RPG_RESOLVIDO] = COR_AZUL;
+  leds[FL_BRASAO_RESOLVIDO] = COR_AZUL;
+  leds[FL_BOMBAS_RESOLVIDO] = COR_AZUL;
+  leds[FL_JOGO_EM_ANDAMENTO] = COR_AZUL;
+  FastLED.show();
+
   inicial_blink = true;  
 }
 
@@ -413,26 +456,13 @@ void setup() {
   Serial.println();
   Serial.println("BHESCAPE STRANGER THINGS");
   Serial.println("NOVO JOGO");
-  reset_game();
 
-  // teste FASTLED
+  // setup FASTLED
   Serial.println("Configurando LEDs");
   FastLED.addLeds<WS2811, LEDS_DATA_PIN>(leds, NUM_LEDS);
   delay(50);
-  delay(300);
 
-  randomSeed(analogRead(0));
-
-  leds[FL_ARVORE_OK] = COR_AZUL;
-  leds[FL_RPG_OK] = COR_AZUL;
-  leds[FL_BRASAO_OK] = COR_AZUL;
-  leds[FL_BOMBAS_OK] = COR_AZUL;
-  leds[FL_ARVORE_RESOLVIDO] = COR_AZUL;
-  leds[FL_RPG_RESOLVIDO] = COR_AZUL;
-  leds[FL_BRASAO_RESOLVIDO] = COR_AZUL;
-  leds[FL_BOMBAS_RESOLVIDO] = COR_AZUL;
-  leds[FL_JOGO_EM_ANDAMENTO] = COR_AZUL;
-
+  reset_game();
 }
 
 void loop() {
@@ -470,7 +500,7 @@ void loop() {
     unsigned long blink_time;
     blink_time = millis()/1000;
     if ((blink_time % 2) == 0) {
-      leds[FL_BOMBAS_OK] = COR_VERMELHO;
+      leds[FL_BOMBAS_OK] = COR_VERDE;
     }
     else {
       leds[FL_BOMBAS_OK] = COR_APAGADO;
@@ -490,7 +520,7 @@ void loop() {
     if (arvore_ok) {
       Serial.println("Árvore OK");
       if (estagio == ESTAGIO_ARVORE) {
-        leds[FL_ARVORE_OK] = COR_VERMELHO;
+        leds[FL_ARVORE_OK] = COR_VERDE;
         FastLED.show(); 
         Serial.println("Árvore RESOLVIDA");
         estagio_rpg();
@@ -511,7 +541,7 @@ void loop() {
     if (rpg_ok) {
       Serial.println("RPG OK");
       if (estagio == ESTAGIO_RPG) {
-        leds[FL_RPG_OK] = COR_VERMELHO;
+        leds[FL_RPG_OK] = COR_VERDE;
         FastLED.show(); 
         Serial.println("RPG RESOLVIDO");
         estagio_will();
@@ -532,7 +562,7 @@ void loop() {
     if (brasao_ok) {
       Serial.println("Will OK");
       if (estagio == ESTAGIO_BRASAO) {
-        leds[FL_BRASAO_OK] = COR_VERMELHO;
+        leds[FL_BRASAO_OK] = COR_VERDE;
         Serial.println("Will RESOLVIDO");
         estagio_bombas();
       }
@@ -542,7 +572,7 @@ void loop() {
     }
     else {
       Serial.println("Will NÃO OK");
-      leds[FL_BRASAO_OK, COR_VERMELHO];  
+      leds[FL_BRASAO_OK, COR_APAGADO];  
       FastLED.show(); 
     }
   }
@@ -554,7 +584,7 @@ void loop() {
         if (bombas_porta) {
           bombas_blink = false;
           Serial.println("Armadilha OK + Porta FECHADA");
-          leds[FL_BOMBAS_OK] = COR_VERMELHO; 
+          leds[FL_BOMBAS_OK] = COR_VERDE; 
           Serial.println("BOMBAS RESOLVIDA");
           estagio_final();
         }
