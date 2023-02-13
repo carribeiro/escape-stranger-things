@@ -243,6 +243,9 @@ void estagio_arvore() {
   leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
   FastLED.show();
 
+  // força status do módulo para ser "falso", assim ele processa corretamente se o sinal já estiver ativo
+  arvore_ok = false;
+
   estagio = ESTAGIO_ARVORE;
   Serial.println("Estágio ARVORE");
   desliga_tomada_tv();
@@ -267,6 +270,9 @@ void estagio_rpg() {
   leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
   FastLED.show();
 
+  // força status do módulo para ser "falso", assim ele processa corretamente se o sinal já estiver ativo
+  rpg_ok = false;
+
   estagio = ESTAGIO_RPG;
   Serial.println("Estágio RPG");
   liga_tomada_tv();
@@ -290,6 +296,9 @@ void estagio_will() {
   leds[FL_BOMBAS_RESOLVIDO] = COR_APAGADO;
   leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
   FastLED.show();
+
+  // força status do módulo para ser "falso", assim ele processa corretamente se o sinal já estiver ativo
+  brasao_ok = false;
 
   estagio = ESTAGIO_BRASAO;
   Serial.println("Estágio BRASAO");
@@ -318,6 +327,10 @@ void estagio_bombas() {
   leds[FL_BOMBAS_RESOLVIDO] = COR_AZUL;
   leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
   FastLED.show();
+
+  // força status do módulo para ser "falso", assim ele processa corretamente se o sinal já estiver ativo
+  bombas_ok = false;
+  bombas_porta = false;
 
   estagio = ESTAGIO_BOMBAS;
   Serial.println("Estágio BOMBAS");
