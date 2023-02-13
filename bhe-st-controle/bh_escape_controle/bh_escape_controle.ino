@@ -29,15 +29,16 @@ CRGB leds[NUM_LEDS];
 #define IN_BOMBAS_LIGADA       (8)
 #define IN_BOMBAS_OK           (9)
 #define IN_BOMBAS_PORTA        (10)
-#define RELE_LIGA_TV           (A0)
-#define RELE_PORTA_BOMBAS      (A1)
-#define RELE_PORTA_ARMARIO     (A2)
-#define RELE_PORTA_PRINCIPAL   (A3)
 
-#define IN_RESTART_ARVORE      (A4)
-#define IN_RESTART_RPG         (A5)
-#define IN_RESTART_BRASAO      (A6)
-#define IN_RESTART_BOMBAS      (A7)
+#define RELE_LIGA_TV           (A7)
+#define RELE_PORTA_BOMBAS      (A6)
+#define RELE_PORTA_ARMARIO     (A5)
+#define RELE_PORTA_PRINCIPAL   (A4)
+
+#define IN_RESTART_ARVORE      (A3)
+#define IN_RESTART_RPG         (A2)
+#define IN_RESTART_BRASAO      (A1)
+#define IN_RESTART_BOMBAS      (A0)
 
 boolean arvore_ligada = false;
 boolean rpg_ligado = false;
