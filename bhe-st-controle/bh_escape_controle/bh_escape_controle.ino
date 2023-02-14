@@ -475,10 +475,19 @@ void setup() {
   reset_game();
 }
 
+long last_loop = 0;
+
 void loop() {
   // Serial.println("LOOP");
   // Serial.println(analogRead(IN_RESTART_BRASAO));
-  
+
+  // imprime um ponto a cada 5s pra ver se o loop está rodando
+  long this_loop = long(millis()/5000);
+  if (this_loop > last_loop) {
+    last_loop = this_loop;
+    Serial.print(".");
+  }
+
   // leds[FL_ARVORE_OK] = random(16777215);
   // leds[FL_ARVORE_OK] = (random(192)*256*256) + (random(192)*256) + (random(128));
   // leds[FL_ARVORE_OK] += 71;
