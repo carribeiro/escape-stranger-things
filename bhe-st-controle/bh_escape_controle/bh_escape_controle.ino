@@ -481,6 +481,9 @@ void setup() {
   Serial.println("BHESCAPE STRANGER THINGS");
   Serial.println("NOVO JOGO");
 
+  // delay de segurança, pra não entrar de cara atualizando a fita de LEDs etc
+  delay(500);
+  
   // setup FASTLED
   Serial.println("Configurando LEDs");
   FastLED.addLeds<WS2811, LEDS_DATA_PIN>(leds, NUM_LEDS);
