@@ -224,6 +224,22 @@ void destrava_porta_principal() {
   digitalWrite(RELE_PORTA_PRINCIPAL, HIGH);
 }
 
+void pisca_led_resolvido(int led) {
+  // pisca o LED de resolvido rapidamente
+  delay(300);
+  leds[led] = COR_APAGADO;
+  FastLED.show();
+  delay(300);
+  leds[led] = COR_AZUL;
+  FastLED.show();
+  delay(300);
+  leds[led] = COR_APAGADO;
+  FastLED.show();
+  delay(300);
+  leds[led] = COR_AZUL;
+  FastLED.show();  
+}
+
 void estagio_arvore() {
   inicial_blink = false;  
 
@@ -241,18 +257,7 @@ void estagio_arvore() {
   FastLED.show();
 
   // pisca o LED de resolvido rapidamente
-  delay(300);
-  leds[FL_ARVORE_RESOLVIDO] = COR_APAGADO;
-  FastLED.show();
-  delay(300);
-  leds[FL_ARVORE_RESOLVIDO] = COR_AZUL;
-  FastLED.show();
-  delay(300);
-  leds[FL_ARVORE_RESOLVIDO] = COR_APAGADO;
-  FastLED.show();
-  delay(300);
-  leds[FL_ARVORE_RESOLVIDO] = COR_AZUL;
-  FastLED.show();
+  pisca_led_resolvido(FL_ARVORE_RESOLVIDO);
 
   // força status do módulo para ser "falso", assim ele processa corretamente se o sinal já estiver ativo
   arvore_ok = false;
@@ -281,6 +286,9 @@ void estagio_rpg() {
   leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
   FastLED.show();
 
+  // pisca o LED de resolvido rapidamente
+  pisca_led_resolvido(FL_RPG_RESOLVIDO);
+
   // força status do módulo para ser "falso", assim ele processa corretamente se o sinal já estiver ativo
   rpg_ok = false;
 
@@ -307,6 +315,9 @@ void estagio_will() {
   leds[FL_BOMBAS_RESOLVIDO] = COR_APAGADO;
   leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
   FastLED.show();
+
+  // pisca o LED de resolvido rapidamente
+  pisca_led_resolvido(FL_BRASAO_RESOLVIDO);
 
   // força status do módulo para ser "falso", assim ele processa corretamente se o sinal já estiver ativo
   brasao_ok = false;
@@ -338,6 +349,9 @@ void estagio_bombas() {
   leds[FL_BOMBAS_RESOLVIDO] = COR_AZUL;
   leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
   FastLED.show();
+
+  // pisca o LED de resolvido rapidamente
+  pisca_led_resolvido(FL_BOMBAS_RESOLVIDO);
 
   // força status do módulo para ser "falso", assim ele processa corretamente se o sinal já estiver ativo
   bombas_ok = false;
