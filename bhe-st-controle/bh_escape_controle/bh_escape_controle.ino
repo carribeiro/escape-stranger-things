@@ -356,7 +356,7 @@ void estagio_final() {
   desliga_tomada_tv();
   // quando as bombas armam, a porta deve permanecer travada
   trava_porta_bombas();
-  destrava_porta_armario();
+  trava_porta_armario();
   destrava_porta_principal();
 
   // leds de status dos estágios do jogo
