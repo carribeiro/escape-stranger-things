@@ -483,7 +483,7 @@ void setup() {
 
   // delay de segurança, pra não entrar de cara atualizando a fita de LEDs etc
   delay(500);
-  
+
   // setup FASTLED
   Serial.println("Configurando LEDs");
   FastLED.addLeds<WS2811, LEDS_DATA_PIN>(leds, NUM_LEDS);
@@ -524,12 +524,14 @@ void loop() {
       leds[FL_RPG_OK] = COR_AMARELO;
       leds[FL_BRASAO_OK] = COR_AMARELO;
       leds[FL_BOMBAS_OK] = COR_AMARELO;
+      Serial.print("+");
     }
     else {
       leds[FL_ARVORE_OK] = COR_APAGADO;
       leds[FL_RPG_OK] = COR_APAGADO;
       leds[FL_BRASAO_OK] = COR_APAGADO;
       leds[FL_BOMBAS_OK] = COR_APAGADO;
+      Serial.print("-");
     }
   }
   else if (bombas_blink) {
