@@ -240,6 +240,20 @@ void estagio_arvore() {
   leds[FL_JOGO_EM_ANDAMENTO] = COR_VERDE;
   FastLED.show();
 
+  // pisca o LED de resolvido rapidamente
+  delay(300);
+  leds[FL_ARVORE_RESOLVIDO] = COR_APAGADO;
+  FastLED.show();
+  delay(300);
+  leds[FL_ARVORE_RESOLVIDO] = COR_AZUL;
+  FastLED.show();
+  delay(300);
+  leds[FL_ARVORE_RESOLVIDO] = COR_APAGADO;
+  FastLED.show();
+  delay(300);
+  leds[FL_ARVORE_RESOLVIDO] = COR_AZUL;
+  FastLED.show();
+
   // força status do módulo para ser "falso", assim ele processa corretamente se o sinal já estiver ativo
   arvore_ok = false;
 
