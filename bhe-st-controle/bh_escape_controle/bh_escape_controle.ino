@@ -36,10 +36,10 @@ CRGB leds[NUM_LEDS];
 #define IN_BOMBAS_OK           (9)
 #define IN_BOMBAS_PORTA        (10)
 
-#define RELE_LIGA_TV           (A7)
-#define RELE_PORTA_BOMBAS      (A6)
+#define RELE_LIGA_TV           (11)
+#define RELE_PORTA_BOMBAS      (A4)
 #define RELE_PORTA_ARMARIO     (A5)
-#define RELE_PORTA_PRINCIPAL   (A4)
+#define RELE_PORTA_PRINCIPAL   (13)
 
 #define IN_RESTART_ARVORE      (A3)
 #define IN_RESTART_RPG         (A2)
