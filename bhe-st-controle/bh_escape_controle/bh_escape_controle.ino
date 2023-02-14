@@ -226,11 +226,8 @@ void destrava_porta_principal() {
 
 void estagio_arvore() {
   inicial_blink = false;  
-  /*
-  digitalWrite(LED_RPG_OK, rpg_ok);  
-  digitalWrite(LED_BRASAO_OK, brasao_ok);    
-  digitalWrite(LED_BOMBAS_OK, LOW);  
-  */
+
+  leds[FL_ARVORE_OK] = arvore_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_RPG_OK] = rpg_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_BRASAO_OK] = brasao_ok ? COR_VERDE : COR_APAGADO;
   leds[FL_BOMBAS_OK] = COR_APAGADO;
